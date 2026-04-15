@@ -1,32 +1,39 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'detail_page.dart';
+import '../controllers/member_controller.dart';
 
 class StructurePage extends StatelessWidget {
-  final divisions = [
-    "Divisi IT",
-    "Divisi HR",
-    "Divisi Marketing",
-  ];
+  StructurePage({super.key});
+  final MemberController controller = Get.put(MemberController());
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Struktur Organisasi")),
-      body: ListView.builder(
-        itemCount: divisions.length,
-        itemBuilder: (context, index) {
-          return ListTile(
-            title: Text(divisions[index]),
-            trailing: Icon(Icons.arrow_forward),
-            onTap: () {
-              Get.to(() => DetailPage(
-                    divisionName: divisions[index],
-                  ));
-            },
-          );
-        },
-      ),
+      body: Obx(() {
+        if (controller.isLoading.value) {
+          return Center(child: CircularProgressIndicator());
+        }
+
+        if (controller.members.isEmpty) {
+          return Center(child: Text("Tidak ada data"));
+        }
+
+        return ListView.builder(
+          itemCount: controller.members.length,
+          itemBuilder: (context, index) {
+            final member = controller.members[index];
+
+            return ListTile(
+              leading: CircleAvatar(
+                backgroundImage: NetworkImage(member.photoUrl),
+              ),
+              title: Text(member.name),
+              subtitle: Text(member.role),
+            );
+          },
+        );
+      }),
     );
   }
 }
