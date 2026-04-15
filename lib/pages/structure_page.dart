@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../controllers/member_controller.dart';
+import '../pages/profile_page.dart';
 
 class StructurePage extends StatelessWidget {
   StructurePage({super.key});
@@ -23,13 +24,15 @@ class StructurePage extends StatelessWidget {
           itemCount: controller.members.length,
           itemBuilder: (context, index) {
             final member = controller.members[index];
-
             return ListTile(
               leading: CircleAvatar(
                 backgroundImage: NetworkImage(member.photoUrl),
               ),
               title: Text(member.name),
               subtitle: Text(member.role),
+              onTap: () {
+                Get.to(() => ProfilePage(member: member));
+              },
             );
           },
         );
