@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "243732581486",
+    "project_id": "the-seeker-1482a",
+    "storage_bucket": "the-seeker-1482a.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:243732581486:android:e8d389ca88358d38d06a7f",
+        "android_client_info": {
+          "package_name": "com.example.seeker"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD0Ko5K8Ch6oErP-6Ol_SBED0LeNg8hq58"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -37,7 +37,7 @@ class _homePageState extends State<HomePage> {
             ListTile(
               leading: CircleAvatar(
                 backgroundImage: NetworkImage(
-                  "https://via.placeholder.com/150",
+                  "https://i.pravatar.cc/300",
                 ),
               ),
               title: Text("Nama Ketua"),
