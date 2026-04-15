@@ -1,18 +1,11 @@
-# seeker
+feat : Menambah fitur baru ke dalam kode.
+fix : Memperbaiki bug atau kesalahan kode.
+docs : Perubahan pada dokumentasi (README, komentar).
+style : Perubahan tampilan/format (spasi, titik koma) tanpa mengubah logika.
+refactor: Mengubah kode agar lebih efisien tapi fungsinya tetap sama.
+test :Menambah atau memperbaiki unit test.
 
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
-"# itc-the-seeker-2026-rizkyadde" 
+ndk : 30.0.14904198
+minimum : 30
+target : 35
+compileSdk : 36
