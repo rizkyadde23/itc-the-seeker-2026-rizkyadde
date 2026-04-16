@@ -2,6 +2,12 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:seeker/pages/home_page.dart';
+import 'package:seeker/pages/login_page.dart';
+import 'package:seeker/pages/structure_page.dart';
+import 'package:seeker/pages/admin_page.dart';
+import 'package:seeker/pages/admin_add_member.dart';
+import 'package:seeker/pages/admin_edit_member.dart';
+import 'package:seeker/pages/profile_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -15,6 +21,27 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(debugShowCheckedModeBanner: false, home: HomePage());
+    return GetMaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: LoginPage(),
+      getPages: [
+        GetPage(name: '/login', page: () => LoginPage()),
+        GetPage(name: '/home', page: () => HomePage()),
+        GetPage(name: '/structure', page: () => StructurePage()),
+        GetPage(name: '/admin', page: () => AdminPage()),
+
+        GetPage(
+          name: '/profile',
+          page: () => ProfilePage(member: Get.arguments),
+        ),
+
+        // 🔥 ADMIN ROUTES
+        GetPage(name: '/admin/add-member', page: () => AddMemberPage()),
+        GetPage(
+          name: '/admin/edit-member',
+          page: () => EditMemberPage(member: Get.arguments),
+        ),
+      ],
+    );
   }
 }

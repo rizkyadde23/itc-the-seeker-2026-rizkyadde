@@ -25,4 +25,9 @@ class MemberController extends GetxController {
       isLoading.value = false;
     }
   }
+
+  Future<void> deleteMember(String id) async {
+    await service.deleteMember(id);
+    fetchMembers(); // refresh data
+  }
 }

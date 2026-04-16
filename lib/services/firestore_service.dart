@@ -24,4 +24,36 @@ class FirestoreService {
         .map((doc) => Member.fromMap(doc.data(), doc.id))
         .toList();
   }
+
+  //Crud
+  Future<void> addMember(Member member) async {
+    await _db.collection('members').add(member.toMap());
+  }
+
+  Future<void> updateMember(String id, Member member) async {
+    await _db.collection('members').doc(id).update(member.toMap());
+  }
+
+  Future<void> deleteMember(String id) async {
+    await _db.collection('members').doc(id).delete();
+  }
+
+  Future<String?> getUserRole(String uid) async {
+    final doc = await _db.collection('users').doc(uid).get();
+    return doc.data()?['role'];
+  }
+
+  Future<Map<String, dynamic>?> getUserData(String uid) async {
+    final doc = await _db.collection('users').doc(uid).get();
+    return doc.data();
+  }
+
+  Future<Member?> getMemberById(String id) async {
+    final doc = await _db.collection('members').doc(id).get();
+
+    if (doc.exists) {
+      return Member.fromMap(doc.data()!, doc.id);
+    }
+    return null;
+  }
 }
