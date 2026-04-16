@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:seeker/routes/app_routes.dart';
 
 class AdminPage extends StatelessWidget {
   const AdminPage({super.key});
@@ -12,13 +13,14 @@ class AdminPage extends StatelessWidget {
         .get();
 
     final users = await FirebaseFirestore.instance.collection('users').get();
+    final division = await FirebaseFirestore.instance.collection('division').get();
 
     int adminCount = users.docs.where((e) => e['role'] == 'admin').length;
 
     return {
       'members': members.docs.length,
       'admins': adminCount,
-      'divisions': 0, // nanti bisa kamu isi
+      'divisions': division.docs.length, // nanti bisa kamu isi
     };
   }
 
@@ -78,7 +80,7 @@ class AdminPage extends StatelessWidget {
       children: [
         ElevatedButton.icon(
           onPressed: () {
-            Get.snackbar("Info", "Coming Soon 🚀");
+            Get.toNamed(AppRoutes.addDivision);
           },
           icon: const Icon(Icons.apartment),
           label: const Text("Add Division"),
@@ -100,6 +102,37 @@ class AdminPage extends StatelessWidget {
         await FirebaseFirestore.instance.collection('users').doc(id).delete();
         Get.back(); // tutup dialog
         Get.snackbar("Success", "Member dihapus");
+      },
+    );
+  }
+
+  Widget buildDivisionList() {
+    return StreamBuilder<QuerySnapshot>(
+      stream: FirebaseFirestore.instance.collection('divisions').snapshots(),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData) return CircularProgressIndicator();
+
+        final divisions = snapshot.data!.docs;
+
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "Divisions",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            SizedBox(height: 10),
+            ...divisions.map((d) {
+              return ListTile(
+                leading: Icon(Icons.apartment),
+                title: Text(d['name']),
+                subtitle: Text(
+                  d['leaderId'] != null ? "Leader assigned" : "Belum ada ketua",
+                ),
+              );
+            }).toList(),
+          ],
+        );
       },
     );
   }
@@ -202,6 +235,9 @@ class AdminPage extends StatelessWidget {
 
             const SizedBox(height: 10),
 
+            buildDivisionList(),
+
+            const SizedBox(height: 10),
             // 🔥 MEMBER LIST
             buildMemberList(),
           ],

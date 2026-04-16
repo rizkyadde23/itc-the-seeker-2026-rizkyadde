@@ -107,6 +107,32 @@ class _ProfilePageState extends State<ProfilePage> {
 
                 Divider(),
 
+                StreamBuilder(
+                  stream: service.getDivisions(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return ListTile(
+                        leading: Icon(Icons.person_2_rounded),
+                        title: Text("Loading..."),
+                      );
+                    }
+
+                    final divisions = snapshot.data!.docs;
+
+                    // 🔥 MAP ID → NAME
+                    final divisionMap = {
+                      for (var d in divisions) d.id: d['name'],
+                    };
+
+                    final divisionName = divisionMap[member.divisionId] ?? '-';
+
+                    return ListTile(
+                      leading: Icon(Icons.apartment),
+                      title: Text(divisionName),
+                    );
+                  },
+                ),
+
                 ListTile(leading: Icon(Icons.email), title: Text(member.email)),
 
                 ListTile(

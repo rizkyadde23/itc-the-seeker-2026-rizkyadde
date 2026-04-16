@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:seeker/routes/app_routes.dart';
 
 import '../models/member_model.dart';
 import '../services/firestore_service.dart';
@@ -22,6 +21,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
   late TextEditingController instagramController;
   late TextEditingController bioController;
 
+  String? selectedDivisionId;
+  String selectedRole = "Anggota";
+
+  bool isAdmin = false;
   bool isLoading = false;
 
   @override
@@ -34,6 +37,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
     phoneController = TextEditingController(text: member.phone);
     instagramController = TextEditingController(text: member.instagram);
     bioController = TextEditingController(text: member.bio);
+
+    selectedDivisionId = member.divisionId;
+    selectedRole = member.role;
+
+    checkAdmin();
+  }
+
+  Future<void> checkAdmin() async {
+    final role = await service.getCurrentUserRole();
+    setState(() {
+      isAdmin = role == 'admin';
+    });
   }
 
   @override
@@ -50,8 +65,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               TextFormField(
                 controller: nameController,
                 decoration: InputDecoration(labelText: "Nama"),
-                validator: (value) =>
-                    value!.isEmpty ? "Nama tidak boleh kosong" : null,
+                validator: (v) => v!.isEmpty ? "Nama tidak boleh kosong" : null,
               ),
 
               SizedBox(height: 10),
@@ -81,6 +95,56 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
               SizedBox(height: 20),
 
+              if (isAdmin)
+                // 🔥 DIVISION DROPDOWN
+                StreamBuilder(
+                  stream: service.getDivisions(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return CircularProgressIndicator();
+                    }
+
+                    final divisions = snapshot.data!.docs;
+
+                    return DropdownButtonFormField<String>(
+                      initialValue: selectedDivisionId == 'general'
+                          ? null
+                          : selectedDivisionId,
+                      hint: Text("Pilih Divisi"),
+                      items: divisions.map<DropdownMenuItem<String>>((d) {
+                        return DropdownMenuItem(
+                          value: d.id,
+                          child: Text(d['name']),
+                        );
+                      }).toList(),
+                      onChanged: (value) {
+                        setState(() {
+                          selectedDivisionId = value;
+                        });
+                      },
+                      decoration: InputDecoration(labelText: "Division"),
+                    );
+                  },
+                ),
+
+              if (isAdmin)
+                DropdownButtonFormField<String>(
+                  initialValue: ["Anggota", "Ketua"].contains(selectedRole)
+                      ? selectedRole
+                      : null,
+                  items: ["Anggota", "Ketua"]
+                      .map((r) => DropdownMenuItem(value: r, child: Text(r)))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedRole = value!;
+                    });
+                  },
+                  decoration: InputDecoration(labelText: "Role"),
+                ),
+
+              SizedBox(height: 30),
+
               // 🔥 SAVE BUTTON
               ElevatedButton(
                 onPressed: isLoading ? null : updateProfile,
@@ -96,29 +160,31 @@ class _EditProfilePageState extends State<EditProfilePage> {
   }
 
   Future<void> updateProfile() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+    if (!_formKey.currentState!.validate()) return;
 
     setState(() => isLoading = true);
 
     try {
-
-      await service.updateMember(member.id, {
+      // 🔥 UPDATE BASIC DATA
+      Map<String, dynamic> updateData = {
         'name': nameController.text,
         'phone': phoneController.text,
         'instagram': instagramController.text,
         'bio': bioController.text,
-      });
+        'divisionId': selectedDivisionId ?? '',
+      };
 
+      // 🔥 ADMIN ONLY UPDATE ROLE
+      if (isAdmin) {
+        updateData['role'] = selectedRole;
+      }
 
-      Get.snackbar("Success", "Profile berhasil diupdate");
+      await service.updateMemberPartial(member.id, updateData);
 
+      Get.snackbar("Success", "Profile updated");
 
-      Get.offAllNamed(AppRoutes.structure);
-
+      Get.back(result: true);
     } catch (e) {
-      print("ERROR: $e");
       Get.snackbar("Error", e.toString());
     } finally {
       setState(() => isLoading = false);

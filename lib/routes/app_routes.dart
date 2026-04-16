@@ -6,4 +6,5 @@ class AppRoutes {
   static const profile = '/profile';
   static const register = '/register';
   static const editProfile = '/edit-profile';
+  static const addDivision = '/add-division';
 }

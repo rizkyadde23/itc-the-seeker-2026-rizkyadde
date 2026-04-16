@@ -1,8 +1,31 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../models/member_model.dart';
 
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
+
+  
+  // 🔥 ADD DIVISION
+  Future<void> addDivision(String name) async {
+    await _db.collection('divisions').add({
+      'name': name,
+      'leaderId': null,
+      'createdAt': FieldValue.serverTimestamp(),
+    });
+  }
+
+  // 🔥 GET DIVISIONS (STREAM)
+  Stream<QuerySnapshot> getDivisions() {
+    return _db.collection('divisions').snapshots();
+  }
+
+  // 🔥 SET LEADER
+  Future<void> setLeader(String divisionId, String memberId) async {
+    await _db.collection('divisions').doc(divisionId).update({
+      'leaderId': memberId,
+    });
+  }
 
   // 🔥 Ambil semua member
   Future<List<Member>> getMembers() async {
@@ -73,4 +96,21 @@ class FirestoreService {
     }
     return null;
   }
+
+
+Future<String> getCurrentUserRole() async {
+  final uid = FirebaseAuth.instance.currentUser!.uid;
+
+  final doc = await _db.collection('users').doc(uid).get();
+
+  return doc['role'];
+}
+
+Future<void> updateMemberPartial(
+  String memberId,
+  Map<String, dynamic> data,
+) async {
+  await _db.collection('members').doc(memberId).update(data);
+}
+
 }
