@@ -91,7 +91,7 @@ class _RegisterPageState extends State<RegisterPage> {
         );
 
         // 🔥 3. redirect
-        Get.offAllNamed(AppRoutes.editProfile, arguments: memberId);
+        Get.offAllNamed(AppRoutes.profile);
       }
     } catch (e) {
       print("ERROR: $e");

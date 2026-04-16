@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:seeker/routes/app_routes.dart';
 import 'structure_page.dart';
 
 class HomePage extends StatefulWidget {
@@ -36,9 +37,7 @@ class _homePageState extends State<HomePage> {
             ),
             ListTile(
               leading: CircleAvatar(
-                backgroundImage: NetworkImage(
-                  "https://i.pravatar.cc/300",
-                ),
+                backgroundImage: NetworkImage("https://i.pravatar.cc/300"),
               ),
               title: Text("Nama Ketua"),
               subtitle: Text("Ketua Umum"),
@@ -48,7 +47,7 @@ class _homePageState extends State<HomePage> {
 
             ElevatedButton(
               onPressed: () {
-                Get.to(() => StructurePage());
+                Get.toNamed(AppRoutes.structure);
               },
               child: Text("Lihat Struktur Organisasi"),
             ),

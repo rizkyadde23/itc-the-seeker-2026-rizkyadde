@@ -43,9 +43,9 @@ class FirestoreService {
     await _db.collection('members').add(member.toMap());
   }
 
-  Future<void> updateMember(String id, Member member) async {
-    await _db.collection('members').doc(id).update(member.toMap());
-  }
+  Future<void> updateMember(String id, Map<String, dynamic> data) async {
+  await _db.collection('members').doc(id).update(data);
+}
 
   Future<void> deleteMember(String id) async {
     await _db.collection('members').doc(id).delete();
