@@ -97,7 +97,7 @@ class AdminPage extends StatelessWidget {
       confirmTextColor: Colors.white,
       onConfirm: () async {
         await FirebaseFirestore.instance.collection('members').doc(id).delete();
-
+        await FirebaseFirestore.instance.collection('users').doc(id).delete();
         Get.back(); // tutup dialog
         Get.snackbar("Success", "Member dihapus");
       },

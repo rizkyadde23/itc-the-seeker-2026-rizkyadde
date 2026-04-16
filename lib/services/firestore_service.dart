@@ -51,6 +51,10 @@ class FirestoreService {
     await _db.collection('members').doc(id).delete();
   }
 
+  Future<void> deleteUser(String id) async {
+    await _db.collection('users').doc(id).delete();
+  }
+
   Future<String?> getUserRole(String uid) async {
     final doc = await _db.collection('users').doc(uid).get();
     return doc.data()?['role'];
