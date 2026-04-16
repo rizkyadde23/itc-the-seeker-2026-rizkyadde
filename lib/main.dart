@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:seeker/pages/edit_profile.dart';
 import 'package:seeker/pages/home_page.dart';
 import 'package:seeker/pages/login_page.dart';
 import 'package:seeker/pages/structure_page.dart';
@@ -43,6 +44,8 @@ class MyApp extends StatelessWidget {
           page: () => EditMemberPage(member: Get.arguments),
         ),
         GetPage(name: '/register', page: () => RegisterPage()),
+        GetPage(name: '/edit-profile', page: () => EditProfile()),
+        
       ],
     );
   }

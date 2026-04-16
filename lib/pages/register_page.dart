@@ -60,47 +60,47 @@ class _RegisterPageState extends State<RegisterPage> {
   }
 
   Future<void> registerUser() async {
-  try {
-    final user = await authService.register(
-      emailController.text,
-      passwordController.text,
-    );
-
-    if (user != null) {
-      // 🔥 1. create member
-      final member = Member(
-        id: '',
-        name: nameController.text,
-        role: "Anggota",
-        divisionId: "general",
-        photoUrl: "",
-        periodId: "2025",
-        bio: "",
-        email: emailController.text,
-        phone: phoneController.text,
-        instagram: "",
-      );
-
-      final memberId = await firestoreService.createMember(member);
-
-      // 🔥 2. create user
-      await firestoreService.createUser(
-        user.uid,
+    try {
+      final user = await authService.register(
         emailController.text,
-        memberId,
+        passwordController.text,
       );
 
-      // 🔥 3. redirect
-      Get.offAllNamed(AppRoutes.profile, arguments: memberId);
-    }
-  } catch (e) {
-    print("ERROR: $e");
+      if (user != null) {
+        // 🔥 1. create member
+        final member = Member(
+          id: '',
+          name: nameController.text,
+          role: "Anggota",
+          divisionId: "general",
+          photoUrl: "",
+          periodId: "2025",
+          bio: "",
+          email: emailController.text,
+          phone: phoneController.text,
+          instagram: "",
+        );
 
-    Get.snackbar(
-      "Register Gagal",
-      e.toString(),
-      snackPosition: SnackPosition.BOTTOM,
-    );
+        final memberId = await firestoreService.createMember(member);
+
+        // 🔥 2. create user
+        await firestoreService.createUser(
+          user.uid,
+          emailController.text,
+          memberId,
+        );
+
+        // 🔥 3. redirect
+        Get.offAllNamed(AppRoutes.editProfile, arguments: memberId);
+      }
+    } catch (e) {
+      print("ERROR: $e");
+
+      Get.snackbar(
+        "Register Gagal",
+        e.toString(),
+        snackPosition: SnackPosition.BOTTOM,
+      );
+    }
   }
-}
 }
