@@ -1,42 +1,41 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../controllers/member_controller.dart';
-import '../pages/profile_page.dart';
+import 'package:seeker/routes/app_routes.dart';
+import '../services/firestore_service.dart';
+import '../models/member_model.dart';
 
 class StructurePage extends StatelessWidget {
-  StructurePage({super.key});
-  final MemberController controller = Get.put(MemberController());
+  final service = FirestoreService();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: Text("Struktur Organisasi")),
-      body: Obx(() {
-        if (controller.isLoading.value) {
-          return Center(child: CircularProgressIndicator());
-        }
+      body: FutureBuilder<List<Member>>(
+        future: service.getMembers(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return Center(child: CircularProgressIndicator());
+          }
 
-        if (controller.members.isEmpty) {
-          return Center(child: Text("Tidak ada data"));
-        }
+          final members = snapshot.data!;
 
-        return ListView.builder(
-          itemCount: controller.members.length,
-          itemBuilder: (context, index) {
-            final member = controller.members[index];
-            return ListTile(
-              leading: CircleAvatar(
-                backgroundImage: NetworkImage(member.photoUrl),
-              ),
-              title: Text(member.name),
-              subtitle: Text(member.role),
-              onTap: () {
-                Get.to(() => ProfilePage());
-              },
-            );
-          },
-        );
-      }),
+          return ListView.builder(
+            itemCount: members.length,
+            itemBuilder: (context, index) {
+              final member = members[index];
+
+              return ListTile(
+                title: Text(member.name),
+                subtitle: Text(member.role),
+                onTap: () {
+                  Get.toNamed(AppRoutes.profile, arguments: member.id);
+                },
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }
