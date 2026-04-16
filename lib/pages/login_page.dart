@@ -44,6 +44,12 @@ class LoginPage extends StatelessWidget {
               },
               child: Text("Login"),
             ),
+            TextButton(
+              onPressed: () {
+                Get.toNamed(AppRoutes.register);
+              },
+              child: Text("Belum punya akun? Register"),
+            ),
           ],
         ),
       ),

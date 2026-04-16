@@ -8,6 +8,7 @@ import 'package:seeker/pages/admin_page.dart';
 import 'package:seeker/pages/admin_add_member.dart';
 import 'package:seeker/pages/admin_edit_member.dart';
 import 'package:seeker/pages/profile_page.dart';
+import 'package:seeker/pages/register_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -32,7 +33,7 @@ class MyApp extends StatelessWidget {
 
         GetPage(
           name: '/profile',
-          page: () => ProfilePage(member: Get.arguments),
+          page: () => ProfilePage(),
         ),
 
         // 🔥 ADMIN ROUTES
@@ -41,6 +42,7 @@ class MyApp extends StatelessWidget {
           name: '/admin/edit-member',
           page: () => EditMemberPage(member: Get.arguments),
         ),
+        GetPage(name: '/register', page: () => RegisterPage()),
       ],
     );
   }

@@ -6,4 +6,5 @@ class AppRoutes {
   static const addMember = '/admin/add-member';
   static const editMember = '/admin/edit-member';
   static const profile = '/profile';
+  static const register = '/register';
 }

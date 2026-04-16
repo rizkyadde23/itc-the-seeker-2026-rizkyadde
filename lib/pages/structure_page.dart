@@ -31,7 +31,7 @@ class StructurePage extends StatelessWidget {
               title: Text(member.name),
               subtitle: Text(member.role),
               onTap: () {
-                Get.to(() => ProfilePage(member: member));
+                Get.to(() => ProfilePage());
               },
             );
           },

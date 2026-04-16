@@ -26,6 +26,19 @@ class FirestoreService {
   }
 
   //Crud
+  Future<String> createMember(Member member) async {
+    final doc = await _db.collection('members').add(member.toMap());
+    return doc.id;
+  }
+
+  Future<void> createUser(String uid, String email, String memberId) async {
+    await _db.collection('users').doc(uid).set({
+      'email': email,
+      'role': 'user',
+      'memberId': memberId,
+    });
+  }
+
   Future<void> addMember(Member member) async {
     await _db.collection('members').add(member.toMap());
   }
