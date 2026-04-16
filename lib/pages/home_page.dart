@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:seeker/routes/app_routes.dart';
-import 'structure_page.dart';
 
 class HomePage extends StatefulWidget {
   @override

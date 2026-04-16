@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:seeker/pages/edit_profile_page.dart';
 import 'package:seeker/routes/app_routes.dart';
 
 import '../services/firestore_service.dart';

@@ -6,7 +6,6 @@ import 'package:seeker/pages/home_page.dart';
 import 'package:seeker/pages/login_page.dart';
 import 'package:seeker/pages/structure_page.dart';
 import 'package:seeker/pages/admin_page.dart';
-import 'package:seeker/pages/admin_add_member.dart';
 import 'package:seeker/pages/admin_edit_member.dart';
 import 'package:seeker/pages/profile_page.dart';
 import 'package:seeker/pages/register_page.dart';
@@ -39,7 +38,6 @@ class MyApp extends StatelessWidget {
         ),
 
         // 🔥 ADMIN ROUTES
-        GetPage(name: '/admin/add-member', page: () => AddMemberPage()),
         GetPage(
           name: '/admin/edit-member',
           page: () => EditMemberPage(member: Get.arguments),

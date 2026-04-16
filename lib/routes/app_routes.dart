@@ -3,7 +3,6 @@ class AppRoutes {
   static const home = '/home';
   static const admin = '/admin';
   static const structure = '/structure';
-  static const addMember = '/admin/add-member';
   static const editMember = '/admin/edit-member';
   static const profile = '/profile';
   static const register = '/register';
