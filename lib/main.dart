@@ -41,7 +41,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/register', page: () => RegisterPage()),
         GetPage(name: '/edit-profile', page: () => EditProfilePage()),
         GetPage(name: '/add-division', page: () => AddDivisionPage()),
-        GetPage(name: '/inactive', page: () => InactiveMemberPage()),
+        GetPage(name: '/inactive', page: () => InactiveMembersPage()),
       ],
     );
   }

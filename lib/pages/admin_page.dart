@@ -223,7 +223,7 @@ class _AdminPageState extends State<AdminPage> {
   // 🔥 MEMBER LIST (REALTIME)
   Widget buildMemberList() {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('members').snapshots(),
+      stream: FirebaseFirestore.instance.collection('members').where('status', isEqualTo: 'Active').snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Padding(

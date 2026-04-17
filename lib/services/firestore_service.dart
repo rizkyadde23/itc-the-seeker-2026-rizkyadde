@@ -5,9 +5,16 @@ import '../models/member_model.dart';
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
+  Stream<QuerySnapshot> getInactiveMembers() {
+  return _db
+      .collection('members')
+      .where('status', isEqualTo: 'Inactive')
+      .snapshots();
+}
+
   Future<void> setActive(String memberId) async {
   await _db.collection('members').doc(memberId).update({
-    'status': 'active',
+    'status': 'Active',
   });
 }
 

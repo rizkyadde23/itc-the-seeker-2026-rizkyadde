@@ -95,6 +95,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
 
                 Text(member.role),
+                Text(member.status),
 
                 SizedBox(height: 20),
 
