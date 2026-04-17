@@ -77,7 +77,7 @@ class DivisionCardOptimized extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final leaderId = division['leaderId'];
-
+    final viceLeaderId = division['viceLeaderId'];
     return Card(
       margin: EdgeInsets.all(12),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -102,6 +102,14 @@ class DivisionCardOptimized extends StatelessWidget {
               )
             else
               Text("👑 Belum ada ketua"),
+
+            if (viceLeaderId != null)
+              Text(
+                "👑 Wakil Ketua: ${_getViceLeaderName()}",
+                style: TextStyle(fontWeight: FontWeight.w500),
+              )
+            else
+              Text("👑 Belum ada Wakil Ketua"),
 
             SizedBox(height: 10),
             Divider(),
@@ -143,6 +151,15 @@ class DivisionCardOptimized extends StatelessWidget {
       return leader['name'];
     } catch (e) {
       return "Tidak ditemukan";
+    }
+  }
+
+  String _getViceLeaderName() {
+    try {
+      final vice = members.firstWhere((m) => m.id == division['viceLeaderId']);
+      return vice['name'];
+    } catch (e) {
+      return "Belum ada";
     }
   }
 }

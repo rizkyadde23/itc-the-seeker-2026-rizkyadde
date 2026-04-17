@@ -2,26 +2,44 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:seeker/routes/app_routes.dart';
+import 'package:seeker/services/firestore_service.dart';
 
-class AdminPage extends StatelessWidget {
+class AdminPage extends StatefulWidget {
   const AdminPage({super.key});
 
+  @override
+  State<AdminPage> createState() => _AdminPageState();
+}
+
+class _AdminPageState extends State<AdminPage> {
   // 🔥 GET STATS
   Future<Map<String, int>> getStats() async {
-    final members = await FirebaseFirestore.instance
-        .collection('members')
-        .get();
+    try {
+      print("START GET STATS");
 
-    final users = await FirebaseFirestore.instance.collection('users').get();
-    final division = await FirebaseFirestore.instance.collection('division').get();
+      final members = await FirebaseFirestore.instance
+          .collection('members')
+          .get();
 
-    int adminCount = users.docs.where((e) => e['role'] == 'admin').length;
+      final users = await FirebaseFirestore.instance.collection('users').get();
 
-    return {
-      'members': members.docs.length,
-      'admins': adminCount,
-      'divisions': division.docs.length, // nanti bisa kamu isi
-    };
+      final divisions = await FirebaseFirestore.instance
+          .collection('divisions')
+          .get();
+
+      int adminCount = users.docs.where((e) => e['role'] == 'admin').length;
+
+      print("SUCCESS GET STATS");
+
+      return {
+        'members': members.docs.length,
+        'admins': adminCount,
+        'divisions': divisions.docs.length,
+      };
+    } catch (e) {
+      print("ERROR GET STATS: $e");
+      rethrow;
+    }
   }
 
   // 🔥 STAT CARD
@@ -90,7 +108,7 @@ class AdminPage extends StatelessWidget {
   }
 
   // 🔥 DELETE CONFIRM
-  void showDeleteDialog(String id) {
+  void showDeleteMemberDialog(String id) {
     Get.defaultDialog(
       title: "Hapus Member",
       middleText: "Yakin ingin menghapus member ini?",
@@ -100,8 +118,51 @@ class AdminPage extends StatelessWidget {
       onConfirm: () async {
         await FirebaseFirestore.instance.collection('members').doc(id).delete();
         await FirebaseFirestore.instance.collection('users').doc(id).delete();
-        Get.back(); // tutup dialog
+        setState(() {
+          Get.back();
+        });
         Get.snackbar("Success", "Member dihapus");
+      },
+    );
+  }
+
+  void showEditDivisionDialog(QueryDocumentSnapshot division) {
+    final controller = TextEditingController(text: division['name']);
+
+    Get.defaultDialog(
+      title: "Edit Divisi",
+      content: TextField(
+        controller: controller,
+        decoration: InputDecoration(labelText: "Nama Divisi"),
+      ),
+      textConfirm: "Save",
+      textCancel: "Cancel",
+      confirmTextColor: Colors.white,
+      onConfirm: () async {
+        await FirebaseFirestore.instance
+            .collection('divisions')
+            .doc(division.id)
+            .update({'name': controller.text});
+
+        Get.back();
+        Get.snackbar("Success", "Divisi berhasil diupdate");
+      },
+    );
+  }
+
+  void showDeleteDivisionDialog(QueryDocumentSnapshot division) {
+    Get.defaultDialog(
+      title: "Hapus Divisi",
+      middleText: "Semua anggota akan keluar dari divisi ini. Yakin?",
+      textConfirm: "Hapus",
+      textCancel: "Batal",
+      confirmTextColor: Colors.white,
+      onConfirm: () async {
+        await FirestoreService().deleteDivision(division.id);
+        setState(() {
+          Get.back();
+        });
+        Get.snackbar("Success", "Divisi berhasil dihapus");
       },
     );
   }
@@ -122,6 +183,7 @@ class AdminPage extends StatelessWidget {
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             ),
             SizedBox(height: 10),
+
             ...divisions.map((d) {
               return ListTile(
                 leading: Icon(Icons.apartment),
@@ -129,8 +191,23 @@ class AdminPage extends StatelessWidget {
                 subtitle: Text(
                   d['leaderId'] != null ? "Leader assigned" : "Belum ada ketua",
                 ),
+
+                // 🔥 ACTION BUTTONS
+                trailing: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.edit, color: Colors.blue),
+                      onPressed: () => showEditDivisionDialog(d),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => showDeleteDivisionDialog(d),
+                    ),
+                  ],
+                ),
               );
-            }).toList(),
+            }),
           ],
         );
       },
@@ -185,7 +262,7 @@ class AdminPage extends StatelessWidget {
                     IconButton(
                       icon: const Icon(Icons.delete, color: Colors.red),
                       onPressed: () {
-                        showDeleteDialog(data.id);
+                        showDeleteMemberDialog(data.id);
                       },
                     ),
                   ],
@@ -207,12 +284,21 @@ class AdminPage extends StatelessWidget {
         child: Column(
           children: [
             // 🔥 OVERVIEW
-            FutureBuilder(
+            FutureBuilder<Map<String, int>>(
               future: getStats(),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
                   return const CircularProgressIndicator();
                 }
+
+                if (snapshot.hasError) {
+                  return Text("Error: ${snapshot.error}");
+                }
+
+                if (!snapshot.hasData) {
+                  return Text("No data");
+                }
+
                 return buildOverview(snapshot.data!);
               },
             ),

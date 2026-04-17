@@ -72,7 +72,7 @@ class _RegisterPageState extends State<RegisterPage> {
           id: '',
           name: nameController.text,
           role: "Anggota",
-          divisionId: "general",
+          divisionId: "",
           photoUrl: "",
           periodId: "2025",
           bio: "",
@@ -91,7 +91,7 @@ class _RegisterPageState extends State<RegisterPage> {
         );
 
         // 🔥 3. redirect
-        Get.offAllNamed(AppRoutes.profile);
+        Get.offAllNamed(AppRoutes.login);
       }
     } catch (e) {
       print("ERROR: $e");

@@ -5,12 +5,135 @@ import '../models/member_model.dart';
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
-  
+  Future<void> assignLeader({
+    required String divisionId,
+    required String memberId,
+  }) async {
+    final divisionRef = _db.collection('divisions').doc(divisionId);
+
+    final doc = await divisionRef.get();
+
+    final oldLeaderId = doc.data()?['leaderId'];
+
+    final batch = _db.batch();
+
+    // 🔥 turunkan leader lama
+    if (oldLeaderId != null && oldLeaderId != memberId) {
+      final oldLeaderRef = _db.collection('members').doc(oldLeaderId);
+
+      batch.update(oldLeaderRef, {'role': 'Anggota'});
+    }
+
+    // 🔥 set leader baru
+    batch.update(divisionRef, {'leaderId': memberId});
+
+    final newLeaderRef = _db.collection('members').doc(memberId);
+
+    batch.update(newLeaderRef, {'role': 'Ketua'});
+
+    await batch.commit();
+  }
+
+  Future<void> assignViceLeader({
+    required String divisionId,
+    required String memberId,
+  }) async {
+    final divisionRef = _db.collection('divisions').doc(divisionId);
+
+    final doc = await divisionRef.get();
+
+    final oldViceId = doc.data()?['viceLeaderId'];
+
+    final batch = _db.batch();
+
+    // 🔥 turunkan wakil lama
+    if (oldViceId != null && oldViceId != memberId) {
+      final oldViceRef = _db.collection('members').doc(oldViceId);
+
+      batch.update(oldViceRef, {'role': 'Anggota'});
+    }
+
+    // 🔥 set wakil baru
+    batch.update(divisionRef, {'viceLeaderId': memberId});
+
+    final newViceRef = _db.collection('members').doc(memberId);
+
+    batch.update(newViceRef, {'role': 'Wakil'});
+
+    await batch.commit();
+  }
+
+  Future<void> removeLeader(String divisionId) async {
+    final divisionRef = _db.collection('divisions').doc(divisionId);
+
+    final doc = await divisionRef.get();
+    final leaderId = doc.data()?['leaderId'];
+
+    final batch = _db.batch();
+
+    if (leaderId != null) {
+      final memberRef = _db.collection('members').doc(leaderId);
+
+      batch.update(memberRef, {'role': 'Anggota'});
+    }
+
+    batch.update(divisionRef, {'leaderId': null});
+
+    await batch.commit();
+  }
+
+  Future<void> removeViceLeader(String divisionId) async {
+    final divisionRef = _db.collection('divisions').doc(divisionId);
+
+    final doc = await divisionRef.get();
+    final viceId = doc.data()?['viceLeaderId'];
+
+    final batch = _db.batch();
+
+    if (viceId != null) {
+      final memberRef = _db.collection('members').doc(viceId);
+
+      batch.update(memberRef, {'role': 'Anggota'});
+    }
+
+    batch.update(divisionRef, {'viceLeaderId': null});
+
+    await batch.commit();
+  }
+
+  Future<void> deleteDivision(String divisionId) async {
+    final db = FirebaseFirestore.instance;
+
+    final batch = db.batch();
+
+    // 🔥 ambil semua member di division ini
+    final members = await db
+        .collection('members')
+        .where('divisionId', isEqualTo: divisionId)
+        .get();
+
+    for (var m in members.docs) {
+      final ref = db.collection('members').doc(m.id);
+
+      batch.update(ref, {
+        'divisionId': null,
+        'role': 'Anggota', // reset role
+      });
+    }
+
+    // 🔥 hapus division
+    final divisionRef = db.collection('divisions').doc(divisionId);
+    batch.delete(divisionRef);
+
+    await batch.commit();
+  }
+
   // 🔥 ADD DIVISION
   Future<void> addDivision(String name) async {
     await _db.collection('divisions').add({
       'name': name,
       'leaderId': null,
+      'viceLeaderId': null,
       'createdAt': FieldValue.serverTimestamp(),
     });
   }
@@ -18,13 +141,6 @@ class FirestoreService {
   // 🔥 GET DIVISIONS (STREAM)
   Stream<QuerySnapshot> getDivisions() {
     return _db.collection('divisions').snapshots();
-  }
-
-  // 🔥 SET LEADER
-  Future<void> setLeader(String divisionId, String memberId) async {
-    await _db.collection('divisions').doc(divisionId).update({
-      'leaderId': memberId,
-    });
   }
 
   // 🔥 Ambil semua member
@@ -67,8 +183,8 @@ class FirestoreService {
   }
 
   Future<void> updateMember(String id, Map<String, dynamic> data) async {
-  await _db.collection('members').doc(id).update(data);
-}
+    await _db.collection('members').doc(id).update(data);
+  }
 
   Future<void> deleteMember(String id) async {
     await _db.collection('members').doc(id).delete();
@@ -97,20 +213,18 @@ class FirestoreService {
     return null;
   }
 
+  Future<String> getCurrentUserRole() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
 
-Future<String> getCurrentUserRole() async {
-  final uid = FirebaseAuth.instance.currentUser!.uid;
+    final doc = await _db.collection('users').doc(uid).get();
 
-  final doc = await _db.collection('users').doc(uid).get();
+    return doc['role'];
+  }
 
-  return doc['role'];
-}
-
-Future<void> updateMemberPartial(
-  String memberId,
-  Map<String, dynamic> data,
-) async {
-  await _db.collection('members').doc(memberId).update(data);
-}
-
+  Future<void> updateMemberPartial(
+    String memberId,
+    Map<String, dynamic> data,
+  ) async {
+    await _db.collection('members').doc(memberId).update(data);
+  }
 }

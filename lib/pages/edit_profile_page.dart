@@ -5,6 +5,8 @@ import '../models/member_model.dart';
 import '../services/firestore_service.dart';
 
 class EditProfilePage extends StatefulWidget {
+  const EditProfilePage({super.key});
+
   @override
   State<EditProfilePage> createState() => _EditProfilePageState();
 }
@@ -38,8 +40,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
     instagramController = TextEditingController(text: member.instagram);
     bioController = TextEditingController(text: member.bio);
 
-    selectedDivisionId = member.divisionId;
-    selectedRole = member.role;
+    selectedDivisionId = member.divisionId.isNotEmpty
+        ? member.divisionId
+        : null;
+
+    selectedRole = ["Anggota", "Ketua", "Wakil"].contains(member.role)
+        ? member.role
+        : "Anggota";
 
     checkAdmin();
   }
@@ -54,7 +61,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text("Edit Profile")),
+      appBar: AppBar(title: const Text("Edit Profile")),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -64,53 +71,54 @@ class _EditProfilePageState extends State<EditProfilePage> {
               // 🔥 NAME
               TextFormField(
                 controller: nameController,
-                decoration: InputDecoration(labelText: "Nama"),
+                decoration: const InputDecoration(labelText: "Nama"),
                 validator: (v) => v!.isEmpty ? "Nama tidak boleh kosong" : null,
               ),
 
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
 
               // 🔥 PHONE
               TextFormField(
                 controller: phoneController,
-                decoration: InputDecoration(labelText: "Phone"),
+                decoration: const InputDecoration(labelText: "Phone"),
               ),
 
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
 
               // 🔥 INSTAGRAM
               TextFormField(
                 controller: instagramController,
-                decoration: InputDecoration(labelText: "Instagram"),
+                decoration: const InputDecoration(labelText: "Instagram"),
               ),
 
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
 
               // 🔥 BIO
               TextFormField(
                 controller: bioController,
-                decoration: InputDecoration(labelText: "Bio"),
+                decoration: const InputDecoration(labelText: "Bio"),
                 maxLines: 3,
               ),
 
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
 
+              // 🔥 DIVISION (ADMIN ONLY)
               if (isAdmin)
-                // 🔥 DIVISION DROPDOWN
                 StreamBuilder(
                   stream: service.getDivisions(),
                   builder: (context, snapshot) {
                     if (!snapshot.hasData) {
-                      return CircularProgressIndicator();
+                      return const CircularProgressIndicator();
                     }
 
                     final divisions = snapshot.data!.docs;
 
                     return DropdownButtonFormField<String>(
-                      initialValue: selectedDivisionId == 'general'
-                          ? null
-                          : selectedDivisionId,
-                      hint: Text("Pilih Divisi"),
+                      initialValue:
+                          divisions.any((d) => d.id == selectedDivisionId)
+                          ? selectedDivisionId
+                          : null,
+                      hint: const Text("Pilih Divisi"),
                       items: divisions.map<DropdownMenuItem<String>>((d) {
                         return DropdownMenuItem(
                           value: d.id,
@@ -120,37 +128,46 @@ class _EditProfilePageState extends State<EditProfilePage> {
                       onChanged: (value) {
                         setState(() {
                           selectedDivisionId = value;
+
+                          // 🔥 reset role kalau division berubah
+                          selectedRole = "Anggota";
                         });
                       },
-                      decoration: InputDecoration(labelText: "Division"),
+                      decoration: const InputDecoration(labelText: "Division"),
                     );
                   },
                 ),
 
+              const SizedBox(height: 20),
+
+              // 🔥 ROLE (ADMIN ONLY)
               if (isAdmin)
                 DropdownButtonFormField<String>(
-                  initialValue: ["Anggota", "Ketua"].contains(selectedRole)
+                  initialValue:
+                      ["Anggota", "Ketua", "Wakil"].contains(selectedRole)
                       ? selectedRole
-                      : null,
-                  items: ["Anggota", "Ketua"]
+                      : "Anggota",
+                  items: ["Anggota", "Ketua", "Wakil"]
                       .map((r) => DropdownMenuItem(value: r, child: Text(r)))
                       .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedRole = value!;
-                    });
-                  },
-                  decoration: InputDecoration(labelText: "Role"),
+                  onChanged: selectedDivisionId == null
+                      ? null // 🔥 disable kalau belum pilih divisi
+                      : (value) {
+                          setState(() {
+                            selectedRole = value!;
+                          });
+                        },
+                  decoration: const InputDecoration(labelText: "Role"),
                 ),
 
-              SizedBox(height: 30),
+              const SizedBox(height: 30),
 
               // 🔥 SAVE BUTTON
               ElevatedButton(
                 onPressed: isLoading ? null : updateProfile,
                 child: isLoading
-                    ? CircularProgressIndicator(color: Colors.white)
-                    : Text("Save"),
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text("Save"),
               ),
             ],
           ),
@@ -165,24 +182,63 @@ class _EditProfilePageState extends State<EditProfilePage> {
     setState(() => isLoading = true);
 
     try {
-      // 🔥 UPDATE BASIC DATA
+      // 🔥 VALIDASI ROLE KHUSUS
+      if (isAdmin && (selectedRole == "Ketua" || selectedRole == "Wakil")) {
+        if (selectedDivisionId == null || selectedDivisionId!.isEmpty) {
+          Get.snackbar("Error", "Divisi wajib dipilih");
+          return;
+        }
+      }
+
       Map<String, dynamic> updateData = {
         'name': nameController.text,
         'phone': phoneController.text,
         'instagram': instagramController.text,
         'bio': bioController.text,
-        'divisionId': selectedDivisionId ?? '',
       };
 
-      // 🔥 ADMIN ONLY UPDATE ROLE
-      if (isAdmin) {
-        updateData['role'] = selectedRole;
+      // 🔥 hanya kirim division kalau valid
+      if (selectedDivisionId != null && selectedDivisionId!.isNotEmpty) {
+        updateData['divisionId'] = selectedDivisionId;
+      }
+
+      // 🔥 ROLE LOGIC (ADMIN ONLY)
+      // 🔥 HANDLE ROLE CHANGE
+      if (isAdmin && selectedDivisionId != null) {
+        final oldDivisionId = member.divisionId;
+        final oldRole = member.role;
+
+        // 🔥 kalau sebelumnya Ketua → remove
+        if (oldRole == "Ketua" &&
+            oldDivisionId.isNotEmpty &&
+            selectedRole != "Ketua") {
+          await service.removeLeader(oldDivisionId);
+        }
+
+        // 🔥 kalau sebelumnya Wakil → remove
+        if (oldRole == "Wakil" &&
+            oldDivisionId.isNotEmpty &&
+            selectedRole != "Wakil") {
+          await service.removeViceLeader(oldDivisionId);
+        }
+
+        // 🔥 assign role baru
+        if (selectedRole == "Ketua") {
+          await service.assignLeader(
+            divisionId: selectedDivisionId!,
+            memberId: member.id,
+          );
+        } else if (selectedRole == "Wakil") {
+          await service.assignViceLeader(
+            divisionId: selectedDivisionId!,
+            memberId: member.id,
+          );
+        }
       }
 
       await service.updateMemberPartial(member.id, updateData);
 
       Get.snackbar("Success", "Profile updated");
-
       Get.back(result: true);
     } catch (e) {
       Get.snackbar("Error", e.toString());

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:seeker/routes/app_routes.dart';
 
 import '../services/firestore_service.dart';
 
@@ -57,7 +58,7 @@ class _AddDivisionPageState extends State<AddDivisionPage> {
 
       Get.snackbar("Success", "Divisi berhasil ditambahkan");
 
-      Get.back();
+      Get.offNamed(AppRoutes.admin);
     } catch (e) {
       Get.snackbar("Error", e.toString());
     } finally {
