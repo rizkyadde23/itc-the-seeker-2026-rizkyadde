@@ -138,13 +138,22 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   void showEditDivisionDialog(QueryDocumentSnapshot division) {
-    final controller = TextEditingController(text: division['name']);
+    final nameController = TextEditingController(text: division['name']);
+    final descController = TextEditingController(text: division['description']);
 
     Get.defaultDialog(
       title: "Edit Divisi",
-      content: TextField(
-        controller: controller,
-        decoration: InputDecoration(labelText: "Nama Divisi"),
+      content: Column(
+        children: [
+          TextField(
+            controller: nameController,
+            decoration: InputDecoration(labelText: "Nama Divisi"),
+          ),
+          TextField(
+            controller: descController,
+            decoration: InputDecoration(labelText: "Deskripsi Divisi"),
+          ),
+        ],
       ),
       textConfirm: "Save",
       textCancel: "Cancel",
@@ -153,7 +162,7 @@ class _AdminPageState extends State<AdminPage> {
         await FirebaseFirestore.instance
             .collection('divisions')
             .doc(division.id)
-            .update({'name': controller.text});
+            .update({'name': nameController.text, 'description': descController.text});
 
         Get.back();
         Get.snackbar("Success", "Divisi berhasil diupdate");
@@ -200,7 +209,7 @@ class _AdminPageState extends State<AdminPage> {
                 leading: Icon(Icons.apartment),
                 title: Text(d['name']),
                 subtitle: Text(
-                  d['leaderId'] != null ? "Leader assigned" : "Belum ada ketua",
+                  d['leaderId'] != "" ? "Leader assigned" : "Belum ada ketua",
                 ),
 
                 // 🔥 ACTION BUTTONS
@@ -277,7 +286,10 @@ class _AdminPageState extends State<AdminPage> {
 
                     // 🔥 DELETE
                     IconButton(
-                      icon: const Icon(Icons.power_settings_new, color: Colors.red),
+                      icon: const Icon(
+                        Icons.power_settings_new,
+                        color: Colors.red,
+                      ),
                       onPressed: () {
                         showDeactivateMemberDialog(member);
                       },
