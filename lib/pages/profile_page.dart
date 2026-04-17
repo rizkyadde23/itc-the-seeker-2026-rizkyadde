@@ -152,14 +152,11 @@ class _ProfilePageState extends State<ProfilePage> {
                 if (isOwner || isAdmin)
                   ElevatedButton(
                     onPressed: () async {
-                      final result = await Get.toNamed(
+                      await Get.toNamed(
                         AppRoutes.editProfile,
                         arguments: member,
                       );
-                      print("RESULT: $result");
-                      if (result == true) {
-                        loadData(); // 🔥 refresh data
-                      }
+                      loadData();
                     },
                     child: Text("Edit Profile"),
                   ),

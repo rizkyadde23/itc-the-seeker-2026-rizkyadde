@@ -239,7 +239,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
       await service.updateMemberPartial(member.id, updateData);
 
       Get.snackbar("Success", "Profile updated");
-      Get.back(result: true);
+      await Future.delayed(Duration(seconds: 1));
+      
     } catch (e) {
       Get.snackbar("Error", e.toString());
     } finally {
