@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:seeker/models/member_model.dart';
 import 'package:seeker/routes/app_routes.dart';
 import 'package:seeker/services/firestore_service.dart';
 
@@ -115,19 +116,23 @@ class _AdminPageState extends State<AdminPage> {
   }
 
   // 🔥 DELETE CONFIRM
-  void showDeleteMemberDialog(String id) {
+  void showDeactivateMemberDialog(Member member) {
     Get.defaultDialog(
-      title: "Hapus Member",
-      middleText: "Yakin ingin menghapus member ini?",
-      textConfirm: "Hapus",
+      title: "Nonaktifkan Member",
+      middleText: "Yakin ingin menonaktifkan member ini?",
+      textConfirm: "Nonaktifkan",
       textCancel: "Batal",
       confirmTextColor: Colors.white,
       onConfirm: () async {
-        await FirebaseFirestore.instance.collection('members').doc(id).delete();
+        await FirebaseFirestore.instance
+            .collection('members')
+            .doc(member.id)
+            .update({'status': 'Inactive'});
+
         setState(() {
           Get.back();
         });
-        Get.snackbar("Success", "Member dihapus");
+        Get.snackbar("Success", "Member dinonaktifkan");
       },
     );
   }
@@ -223,7 +228,10 @@ class _AdminPageState extends State<AdminPage> {
   // 🔥 MEMBER LIST (REALTIME)
   Widget buildMemberList() {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('members').where('status', isEqualTo: 'Active').snapshots(),
+      stream: FirebaseFirestore.instance
+          .collection('members')
+          .where('status', isEqualTo: 'Active')
+          .snapshots(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Padding(
@@ -243,16 +251,19 @@ class _AdminPageState extends State<AdminPage> {
           physics: const NeverScrollableScrollPhysics(),
           itemCount: members.length,
           itemBuilder: (context, index) {
-            final data = members[index];
-
+            final doc = members[index];
+            final member = Member.fromMap(
+              doc.data() as Map<String, dynamic>,
+              doc.id,
+            );
             return Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
               child: ListTile(
                 leading: CircleAvatar(child: const Icon(Icons.person)),
-                title: Text(data['name'] ?? '-'),
-                subtitle: Text(data['role'] ?? '-'),
+                title: Text(doc['name'] ?? '-'),
+                subtitle: Text(doc['role'] ?? '-'),
                 trailing: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
@@ -260,15 +271,15 @@ class _AdminPageState extends State<AdminPage> {
                     IconButton(
                       icon: const Icon(Icons.edit),
                       onPressed: () {
-                        Get.toNamed('/profile', arguments: data.id);
+                        Get.toNamed('/profile', arguments: doc.id);
                       },
                     ),
 
                     // 🔥 DELETE
                     IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
+                      icon: const Icon(Icons.power_settings_new, color: Colors.red),
                       onPressed: () {
-                        showDeleteMemberDialog(data.id);
+                        showDeactivateMemberDialog(member);
                       },
                     ),
                   ],

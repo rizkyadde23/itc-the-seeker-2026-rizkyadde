@@ -12,6 +12,7 @@ class AddDivisionPage extends StatefulWidget {
 class _AddDivisionPageState extends State<AddDivisionPage> {
   final service = FirestoreService();
   final nameController = TextEditingController();
+  final descController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
 
   bool isLoading = false;
@@ -29,8 +30,17 @@ class _AddDivisionPageState extends State<AddDivisionPage> {
               TextFormField(
                 controller: nameController,
                 decoration: InputDecoration(labelText: "Nama Divisi"),
-                validator: (v) =>
-                    v!.isEmpty ? "Nama tidak boleh kosong" : null,
+                validator: (v) => v!.isEmpty ? "Nama tidak boleh kosong" : null,
+              ),
+
+              SizedBox(height: 20),
+
+              TextFormField(
+                controller: descController,
+                decoration: InputDecoration(
+                  labelText: "Deskripsi Divisi",
+                  hintText: "Opsional",
+                ),
               ),
 
               SizedBox(height: 20),
@@ -40,7 +50,7 @@ class _AddDivisionPageState extends State<AddDivisionPage> {
                 child: isLoading
                     ? CircularProgressIndicator(color: Colors.white)
                     : Text("Tambah Divisi"),
-              )
+              ),
             ],
           ),
         ),
@@ -54,11 +64,11 @@ class _AddDivisionPageState extends State<AddDivisionPage> {
     setState(() => isLoading = true);
 
     try {
-      await service.addDivision(nameController.text);
+      await service.addDivision(nameController.text, descController.text);
 
       Get.snackbar("Success", "Divisi berhasil ditambahkan");
 
-      Get.offNamed(AppRoutes.admin);
+      Get.offAllNamed(AppRoutes.admin);
     } catch (e) {
       Get.snackbar("Error", e.toString());
     } finally {

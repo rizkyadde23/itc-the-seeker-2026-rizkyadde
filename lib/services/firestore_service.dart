@@ -6,39 +6,37 @@ class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
   Stream<QuerySnapshot> getInactiveMembers() {
-  return _db
-      .collection('members')
-      .where('status', isEqualTo: 'Inactive')
-      .snapshots();
-}
+    return _db
+        .collection('members')
+        .where('status', isEqualTo: 'Inactive')
+        .snapshots();
+  }
 
   Future<void> setActive(String memberId) async {
-  await _db.collection('members').doc(memberId).update({
-    'status': 'Active',
-  });
-}
-
-Future<void> deactivateMember(Member member) async {
-  final batch = _db.batch();
-
-  if (member.role == "Ketua" && member.divisionId.isNotEmpty) {
-    await removeLeader(member.divisionId);
+    await _db.collection('members').doc(memberId).update({'status': 'Active'});
   }
 
-  if (member.role == "Wakil" && member.divisionId.isNotEmpty) {
-    await removeViceLeader(member.divisionId);
+  Future<void> deactivateMember(Member member) async {
+    final batch = _db.batch();
+
+    if (member.role == "Ketua" && member.divisionId.isNotEmpty) {
+      await removeLeader(member.divisionId);
+    }
+
+    if (member.role == "Wakil" && member.divisionId.isNotEmpty) {
+      await removeViceLeader(member.divisionId);
+    }
+
+    final ref = _db.collection('members').doc(member.id);
+
+    batch.update(ref, {
+      'status': 'Inactive',
+      'divisionId': '',
+      'role': 'Anggota',
+    });
+
+    await batch.commit();
   }
-
-  final ref = _db.collection('members').doc(member.id);
-
-  batch.update(ref, {
-    'status': 'Inactive',
-    'divisionId': null,
-    'role': 'Anggota',
-  });
-
-  await batch.commit();
-}
 
   Future<void> assignLeader({
     required String divisionId,
@@ -53,7 +51,7 @@ Future<void> deactivateMember(Member member) async {
     final batch = _db.batch();
 
     // 🔥 turunkan leader lama
-    if (oldLeaderId != null && oldLeaderId != memberId) {
+    if (oldLeaderId != '' && oldLeaderId != memberId) {
       final oldLeaderRef = _db.collection('members').doc(oldLeaderId);
 
       batch.update(oldLeaderRef, {'role': 'Anggota'});
@@ -82,7 +80,7 @@ Future<void> deactivateMember(Member member) async {
     final batch = _db.batch();
 
     // 🔥 turunkan wakil lama
-    if (oldViceId != null && oldViceId != memberId) {
+    if (oldViceId != '' && oldViceId != memberId) {
       final oldViceRef = _db.collection('members').doc(oldViceId);
 
       batch.update(oldViceRef, {'role': 'Anggota'});
@@ -106,13 +104,13 @@ Future<void> deactivateMember(Member member) async {
 
     final batch = _db.batch();
 
-    if (leaderId != null) {
+    if (leaderId != '') {
       final memberRef = _db.collection('members').doc(leaderId);
 
       batch.update(memberRef, {'role': 'Anggota'});
     }
 
-    batch.update(divisionRef, {'leaderId': null});
+    batch.update(divisionRef, {'leaderId': ''});
 
     await batch.commit();
   }
@@ -125,13 +123,13 @@ Future<void> deactivateMember(Member member) async {
 
     final batch = _db.batch();
 
-    if (viceId != null) {
+    if (viceId != '') {
       final memberRef = _db.collection('members').doc(viceId);
 
       batch.update(memberRef, {'role': 'Anggota'});
     }
 
-    batch.update(divisionRef, {'viceLeaderId': null});
+    batch.update(divisionRef, {'viceLeaderId': ''});
 
     await batch.commit();
   }
@@ -151,7 +149,7 @@ Future<void> deactivateMember(Member member) async {
       final ref = db.collection('members').doc(m.id);
 
       batch.update(ref, {
-        'divisionId': null,
+        'divisionId': '',
         'role': 'Anggota', // reset role
       });
     }
@@ -164,12 +162,13 @@ Future<void> deactivateMember(Member member) async {
   }
 
   // 🔥 ADD DIVISION
-  Future<void> addDivision(String name) async {
+  Future<void> addDivision(String name, String desc) async {
     await _db.collection('divisions').add({
       'name': name,
-      'leaderId': null,
-      'viceLeaderId': null,
+      'leaderId': '',
+      'viceLeaderId': '',
       'createdAt': FieldValue.serverTimestamp(),
+      'description': desc,
     });
   }
 

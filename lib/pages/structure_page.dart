@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:seeker/routes/app_routes.dart';
 
 class StructurePage extends StatelessWidget {
   const StructurePage({super.key});
@@ -52,6 +53,7 @@ class StructurePage extends StatelessWidget {
 
                   return DivisionCardOptimized(
                     division: division,
+                    divisionId: divisionId,
                     members: divisionMembers,
                   );
                 },
@@ -67,10 +69,12 @@ class StructurePage extends StatelessWidget {
 class DivisionCardOptimized extends StatelessWidget {
   final QueryDocumentSnapshot division;
   final List<QueryDocumentSnapshot> members;
+  final String divisionId;
 
   const DivisionCardOptimized({
     super.key,
     required this.division,
+    required this.divisionId,
     required this.members,
   });
 
@@ -78,68 +82,67 @@ class DivisionCardOptimized extends StatelessWidget {
   Widget build(BuildContext context) {
     final leaderId = division['leaderId'];
     final viceLeaderId = division['viceLeaderId'];
-    return Card(
-      margin: EdgeInsets.all(12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // 🔥 NAMA DIVISI
-            Text(
-              division['name'],
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-
-            SizedBox(height: 10),
-
-            // 🔥 LEADER (NO QUERY 🔥)
-            if (leaderId != null)
+    return GestureDetector(
+      onTap: () {
+        Get.toNamed(AppRoutes.divisionDesc, arguments: divisionId);
+      },
+      child: Card(
+        margin: EdgeInsets.all(12),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 🔥 NAMA DIVISI
               Text(
-                "👑 Ketua: ${_getLeaderName()}",
-                style: TextStyle(fontWeight: FontWeight.w500),
-              )
-            else
-              Text("👑 Belum ada ketua"),
-
-            if (viceLeaderId != null)
-              Text(
-                "👑 Wakil Ketua: ${_getViceLeaderName()}",
-                style: TextStyle(fontWeight: FontWeight.w500),
-              )
-            else
-              Text("👑 Belum ada Wakil Ketua"),
-
-            SizedBox(height: 10),
-            Divider(),
-            SizedBox(height: 10),
-
-            // 🔥 MEMBER LIST
-            if (members.isEmpty)
-              Text("Belum ada anggota")
-            else
-              Column(
-                children: members.map((m) {
-                  final isLeader = m.id == leaderId;
-
-                  return ListTile(
-                    leading: Icon(
-                      isLeader ? Icons.star : Icons.person,
-                      color: isLeader ? Colors.amber : null,
-                    ),
-                    title: Text(m['name']),
-                    subtitle: Text(m['role']),
-                    onTap: () {
-                      Get.toNamed(
-                        '/profile',
-                        arguments: m.id, // 🔥 kirim memberId
-                      );
-                    },
-                  );
-                }).toList(),
+                division['name'],
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-          ],
+
+              SizedBox(height: 10),
+
+              // 🔥 LEADER (NO QUERY 🔥)
+              if (leaderId != '')
+                Text(
+                  "👑 Ketua: ${_getLeaderName()}",
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                )
+              else
+                Text("👑 Belum ada ketua"),
+
+              if (viceLeaderId != '')
+                Text(
+                  "👑 Wakil Ketua: ${_getViceLeaderName()}",
+                  style: TextStyle(fontWeight: FontWeight.w500),
+                )
+              else
+                Text("👑 Belum ada Wakil Ketua"),
+
+              SizedBox(height: 10),
+              Divider(),
+              SizedBox(height: 10),
+
+              // 🔥 MEMBER LIST
+              if (members.isEmpty)
+                Text("Belum ada anggota")
+              else
+                Column(
+                  children: members.map((m) {
+                    final isLeader = m.id == leaderId;
+
+                    return ListTile(
+                      leading: Icon(
+                        isLeader ? Icons.star : Icons.person,
+                        color: isLeader ? Colors.amber : null,
+                      ),
+                      title: Text(m['name']),
+                      subtitle: Text(m['role']),
+                    );
+                  }).toList(),
+                ),
+            ],
+          ),
         ),
       ),
     );
@@ -150,7 +153,7 @@ class DivisionCardOptimized extends StatelessWidget {
       final leader = members.firstWhere((m) => m.id == division['leaderId']);
       return leader['name'];
     } catch (e) {
-      return "Tidak ditemukan";
+      return "Belum Ada";
     }
   }
 

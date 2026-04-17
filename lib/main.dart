@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:seeker/pages/add_division_page.dart';
+import 'package:seeker/pages/division_description_page.dart';
 import 'package:seeker/pages/edit_profile_page.dart';
 import 'package:seeker/pages/home_page.dart';
 import 'package:seeker/pages/inactive_member_page.dart';
@@ -42,6 +43,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/edit-profile', page: () => EditProfilePage()),
         GetPage(name: '/add-division', page: () => AddDivisionPage()),
         GetPage(name: '/inactive', page: () => InactiveMembersPage()),
+        GetPage(name: '/division-desc', page: () => DivisionPage()),
       ],
     );
   }

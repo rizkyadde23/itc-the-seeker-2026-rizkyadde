@@ -8,4 +8,5 @@ class AppRoutes {
   static const editProfile = '/edit-profile';
   static const addDivision = '/add-division';
   static const inactive = '/inactive';
+  static const divisionDesc = '/division-desc';
 }
