@@ -103,6 +103,13 @@ class _AdminPageState extends State<AdminPage> {
           icon: const Icon(Icons.apartment),
           label: const Text("Add Division"),
         ),
+        ElevatedButton.icon(
+          onPressed: () {
+            Get.toNamed(AppRoutes.inactive);
+          },
+          icon: const Icon(Icons.person_2),
+          label: const Text("Inactive Member"),
+        ),
       ],
     );
   }
@@ -117,7 +124,6 @@ class _AdminPageState extends State<AdminPage> {
       confirmTextColor: Colors.white,
       onConfirm: () async {
         await FirebaseFirestore.instance.collection('members').doc(id).delete();
-        await FirebaseFirestore.instance.collection('users').doc(id).delete();
         setState(() {
           Get.back();
         });

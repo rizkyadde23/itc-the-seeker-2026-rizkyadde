@@ -5,6 +5,34 @@ import '../models/member_model.dart';
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
+  Future<void> setActive(String memberId) async {
+  await _db.collection('members').doc(memberId).update({
+    'status': 'active',
+  });
+}
+
+Future<void> deactivateMember(Member member) async {
+  final batch = _db.batch();
+
+  if (member.role == "Ketua" && member.divisionId.isNotEmpty) {
+    await removeLeader(member.divisionId);
+  }
+
+  if (member.role == "Wakil" && member.divisionId.isNotEmpty) {
+    await removeViceLeader(member.divisionId);
+  }
+
+  final ref = _db.collection('members').doc(member.id);
+
+  batch.update(ref, {
+    'status': 'Inactive',
+    'divisionId': null,
+    'role': 'Anggota',
+  });
+
+  await batch.commit();
+}
+
   Future<void> assignLeader({
     required String divisionId,
     required String memberId,

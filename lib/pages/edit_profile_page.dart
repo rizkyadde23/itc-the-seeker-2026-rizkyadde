@@ -25,8 +25,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   String? selectedDivisionId;
   String selectedRole = "Anggota";
+  String selectedStatus = "Active";
 
   bool isAdmin = false;
+  bool isActive = true;
   bool isLoading = false;
 
   @override
@@ -47,6 +49,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
     selectedRole = ["Anggota", "Ketua", "Wakil"].contains(member.role)
         ? member.role
         : "Anggota";
+
+    selectedStatus = ["Active", "inactive"].contains(member.status)
+        ? member.status
+        : "Active";
 
     checkAdmin();
   }
@@ -102,8 +108,27 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
               const SizedBox(height: 20),
 
-              // 🔥 DIVISION (ADMIN ONLY)
               if (isAdmin)
+                DropdownButtonFormField<String>(
+                  initialValue: ["Active", "Inactive"].contains(selectedStatus)
+                      ? selectedStatus
+                      : "Active",
+                  items: ["Active", "Inactive"]
+                      .map((r) => DropdownMenuItem(value: r, child: Text(r)))
+                      .toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedStatus = value!;
+                      isActive = selectedStatus == "Active" ? true : false;
+                    });
+                  },
+                  decoration: const InputDecoration(labelText: "Status"),
+                ),
+
+              const SizedBox(height: 20),
+
+              // 🔥 DIVISION (ADMIN ONLY)
+              if (isAdmin && isActive)
                 StreamBuilder(
                   stream: service.getDivisions(),
                   builder: (context, snapshot) {
@@ -141,7 +166,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               const SizedBox(height: 20),
 
               // 🔥 ROLE (ADMIN ONLY)
-              if (isAdmin)
+              if (isAdmin && isActive)
                 DropdownButtonFormField<String>(
                   initialValue:
                       ["Anggota", "Ketua", "Wakil"].contains(selectedRole)
@@ -197,6 +222,28 @@ class _EditProfilePageState extends State<EditProfilePage> {
         'bio': bioController.text,
       };
 
+      // 🔥 HANDLE STATUS INACTIVE
+      if (selectedStatus == "Inactive") {
+        final oldDivisionId = member.divisionId;
+        final oldRole = member.role;
+
+        // 🔥 kalau dia Ketua → remove dari division
+        if (oldRole == "Ketua" && oldDivisionId.isNotEmpty) {
+          await service.removeLeader(oldDivisionId);
+        }
+
+        // 🔥 kalau dia Wakil → remove juga
+        if (oldRole == "Wakil" && oldDivisionId.isNotEmpty) {
+          await service.removeViceLeader(oldDivisionId);
+        }
+
+        // 🔥 reset data
+        updateData['divisionId'] = null;
+        updateData['role'] = 'Anggota';
+        await service.deactivateMember(member);
+
+      }
+
       // 🔥 hanya kirim division kalau valid
       if (selectedDivisionId != null && selectedDivisionId!.isNotEmpty) {
         updateData['divisionId'] = selectedDivisionId;
@@ -240,7 +287,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
       Get.snackbar("Success", "Profile updated");
       await Future.delayed(Duration(seconds: 1));
-      
     } catch (e) {
       Get.snackbar("Error", e.toString());
     } finally {

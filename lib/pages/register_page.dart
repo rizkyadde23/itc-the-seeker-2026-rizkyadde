@@ -73,6 +73,7 @@ class _RegisterPageState extends State<RegisterPage> {
           name: nameController.text,
           role: "Anggota",
           divisionId: "",
+          status: "Active",
           photoUrl: "",
           periodId: "2025",
           bio: "",

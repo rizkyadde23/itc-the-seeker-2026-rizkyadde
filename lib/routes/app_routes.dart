@@ -7,4 +7,5 @@ class AppRoutes {
   static const register = '/register';
   static const editProfile = '/edit-profile';
   static const addDivision = '/add-division';
+  static const inactive = '/inactive';
 }

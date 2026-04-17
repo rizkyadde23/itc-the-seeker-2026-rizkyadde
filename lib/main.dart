@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:seeker/pages/add_division_page.dart';
 import 'package:seeker/pages/edit_profile_page.dart';
 import 'package:seeker/pages/home_page.dart';
+import 'package:seeker/pages/inactive_member_page.dart';
 import 'package:seeker/pages/login_page.dart';
 import 'package:seeker/pages/structure_page.dart';
 import 'package:seeker/pages/admin_page.dart';
@@ -40,6 +41,7 @@ class MyApp extends StatelessWidget {
         GetPage(name: '/register', page: () => RegisterPage()),
         GetPage(name: '/edit-profile', page: () => EditProfilePage()),
         GetPage(name: '/add-division', page: () => AddDivisionPage()),
+        GetPage(name: '/inactive', page: () => InactiveMemberPage()),
       ],
     );
   }
