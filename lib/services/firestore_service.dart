@@ -5,6 +5,40 @@ import '../models/member_model.dart';
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
+  Future<void> toggleFavorite(String memberId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    final userRef = FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid);
+
+    final doc = await userRef.get();
+    final favorites = List<String>.from(doc.data()?['favorites'] ?? []);
+
+    if (favorites.contains(memberId)) {
+      favorites.remove(memberId);
+    } else {
+      favorites.add(memberId);
+    }
+
+    await userRef.update({'favorites': favorites});
+  }
+
+  Future<bool> isFavorite(String memberId) async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return false;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('users')
+        .doc(user.uid)
+        .get();
+
+    final favorites = List<String>.from(doc.data()?['favorites'] ?? []);
+
+    return favorites.contains(memberId);
+  }
+
   Stream<QuerySnapshot> getInactiveMembers() {
     return _db
         .collection('members')

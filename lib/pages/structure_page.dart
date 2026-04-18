@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:seeker/routes/app_routes.dart';
 
 class StructurePage extends StatelessWidget {
@@ -8,53 +9,73 @@ class StructurePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final userId = FirebaseAuth.instance.currentUser!.uid;
+
     return Scaffold(
-      appBar: AppBar(title: Text("Struktur Organisasi")),
-      body: StreamBuilder(
-        stream: FirebaseFirestore.instance.collection('divisions').snapshots(),
-        builder: (context, divisionSnapshot) {
-          if (!divisionSnapshot.hasData) {
-            return Center(child: CircularProgressIndicator());
+      appBar: AppBar(title: const Text("Struktur Organisasi")),
+      body: StreamBuilder<DocumentSnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('users')
+            .doc(userId)
+            .snapshots(),
+        builder: (context, favSnapshot) {
+          if (!favSnapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
           }
 
-          final divisions = divisionSnapshot.data!.docs;
+          final favData = favSnapshot.data!.data() as Map<String, dynamic>;
+          final favorites = List<String>.from(favData['favorites'] ?? []);
 
-          return StreamBuilder(
+          return StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
-                .collection('members')
+                .collection('divisions')
                 .snapshots(),
-            builder: (context, memberSnapshot) {
-              if (!memberSnapshot.hasData) {
-                return Center(child: CircularProgressIndicator());
+            builder: (context, divisionSnapshot) {
+              if (!divisionSnapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
               }
 
-              final members = memberSnapshot.data!.docs;
+              final divisions = divisionSnapshot.data!.docs;
 
-              // 🔥 GROUP MEMBERS BY DIVISION
-              Map<String, List<QueryDocumentSnapshot>> grouped = {};
+              return StreamBuilder<QuerySnapshot>(
+                stream: FirebaseFirestore.instance
+                    .collection('members')
+                    .snapshots(),
+                builder: (context, memberSnapshot) {
+                  if (!memberSnapshot.hasData) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
 
-              for (var m in members) {
-                final divisionId = m['divisionId'] ?? '';
+                  final members = memberSnapshot.data!.docs;
 
-                if (!grouped.containsKey(divisionId)) {
-                  grouped[divisionId] = [];
-                }
+                  // 🔥 GROUP MEMBERS BY DIVISION
+                  Map<String, List<QueryDocumentSnapshot>> grouped = {};
 
-                grouped[divisionId]!.add(m);
-              }
+                  for (var m in members) {
+                    final divisionId = m['divisionId'] ?? '';
 
-              return ListView.builder(
-                itemCount: divisions.length,
-                itemBuilder: (context, index) {
-                  final division = divisions[index];
-                  final divisionId = division.id;
+                    if (!grouped.containsKey(divisionId)) {
+                      grouped[divisionId] = [];
+                    }
 
-                  final divisionMembers = grouped[divisionId] ?? [];
+                    grouped[divisionId]!.add(m);
+                  }
 
-                  return DivisionCardOptimized(
-                    division: division,
-                    divisionId: divisionId,
-                    members: divisionMembers,
+                  return ListView.builder(
+                    itemCount: divisions.length,
+                    itemBuilder: (context, index) {
+                      final division = divisions[index];
+                      final divisionId = division.id;
+
+                      final divisionMembers = grouped[divisionId] ?? [];
+
+                      return DivisionCardOptimized(
+                        division: division,
+                        divisionId: divisionId,
+                        members: divisionMembers,
+                        favorites: favorites,
+                      );
+                    },
                   );
                 },
               );
@@ -70,24 +91,27 @@ class DivisionCardOptimized extends StatelessWidget {
   final QueryDocumentSnapshot division;
   final List<QueryDocumentSnapshot> members;
   final String divisionId;
+  final List<String> favorites;
 
   const DivisionCardOptimized({
     super.key,
     required this.division,
     required this.divisionId,
     required this.members,
+    required this.favorites,
   });
 
   @override
   Widget build(BuildContext context) {
     final leaderId = division['leaderId'];
     final viceLeaderId = division['viceLeaderId'];
+
     return GestureDetector(
       onTap: () {
         Get.toNamed(AppRoutes.divisionDesc, arguments: divisionId);
       },
       child: Card(
-        margin: EdgeInsets.all(12),
+        margin: const EdgeInsets.all(12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
           padding: const EdgeInsets.all(16),
@@ -97,47 +121,76 @@ class DivisionCardOptimized extends StatelessWidget {
               // 🔥 NAMA DIVISI
               Text(
                 division['name'],
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
 
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
 
-              // 🔥 LEADER (NO QUERY 🔥)
-              if (leaderId != '')
-                Text(
-                  "👑 Ketua: ${_getLeaderName()}",
-                  style: TextStyle(fontWeight: FontWeight.w500),
-                )
-              else
-                Text("👑 Belum ada ketua"),
+              // 🔥 LEADER
+              Text(
+                leaderId != ''
+                    ? "👑 Ketua: ${_getLeaderName()}"
+                    : "👑 Belum ada ketua",
+              ),
 
-              if (viceLeaderId != '')
-                Text(
-                  "👑 Wakil Ketua: ${_getViceLeaderName()}",
-                  style: TextStyle(fontWeight: FontWeight.w500),
-                )
-              else
-                Text("👑 Belum ada Wakil Ketua"),
+              Text(
+                viceLeaderId != ''
+                    ? "👑 Wakil: ${_getViceLeaderName()}"
+                    : "👑 Belum ada wakil",
+              ),
 
-              SizedBox(height: 10),
-              Divider(),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
+              const Divider(),
+              const SizedBox(height: 10),
 
               // 🔥 MEMBER LIST
               if (members.isEmpty)
-                Text("Belum ada anggota")
+                const Text("Belum ada anggota")
               else
                 Column(
                   children: members.map((m) {
                     final isLeader = m.id == leaderId;
+                    final isFav = favorites.contains(m.id);
 
                     return ListTile(
+                      onTap: () {
+                        Get.toNamed(AppRoutes.profile, arguments: m.id);
+                      },
                       leading: Icon(
                         isLeader ? Icons.star : Icons.person,
                         color: isLeader ? Colors.amber : null,
                       ),
                       title: Text(m['name']),
                       subtitle: Text(m['role']),
+
+                      // 🔥 FAVORITE BUTTON
+                      trailing: IconButton(
+                        icon: Icon(
+                          isFav ? Icons.favorite : Icons.favorite_border,
+                          color: isFav ? Colors.red : null,
+                        ),
+                        onPressed: () async {
+                          final userRef = FirebaseFirestore.instance
+                              .collection('users')
+                              .doc(FirebaseAuth.instance.currentUser!.uid);
+
+                          final doc = await userRef.get();
+                          final favs = List<String>.from(
+                            doc.data()?['favorites'] ?? [],
+                          );
+
+                          if (favs.contains(m.id)) {
+                            favs.remove(m.id);
+                          } else {
+                            favs.add(m.id);
+                          }
+
+                          await userRef.update({'favorites': favs});
+                        },
+                      ),
                     );
                   }).toList(),
                 ),
@@ -153,7 +206,7 @@ class DivisionCardOptimized extends StatelessWidget {
       final leader = members.firstWhere((m) => m.id == division['leaderId']);
       return leader['name'];
     } catch (e) {
-      return "Belum Ada";
+      return "Belum ada";
     }
   }
 
