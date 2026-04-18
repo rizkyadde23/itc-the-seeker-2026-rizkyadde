@@ -106,53 +106,56 @@ class _LoginPageState extends State<LoginPage> {
       onPressed: isLoading
           ? null
           : () async {
-              if (loginFormKey.currentState!.validate()) {
-                loginFormKey.currentState!.save();
-                setState(() {
-                  isLoading = true;
-                });
-
-                try {
-                  final user = await authService.login(
-                    emailController.text,
-                    passwordController.text,
-                  );
-
-                  if (user != null) {
-                    final role = await firestoreService.getUserRole(user.uid);
-                    setState(() {
-                      isLoading = false;
-                    });
-                    if (role == 'admin') {
-                      Get.snackbar(
-                        "Login Berhasil",
-                        "Selamat Datang Di ITC Directory",
-                      );
-                      Get.offAllNamed(AppRoutes.admin);
-                    } else {
-                      Get.snackbar(
-                        "Login Berhasil",
-                        "Selamat Datang Di ITC Directory",
-                      );
-                      Get.offAllNamed(AppRoutes.home);
-                    }
-                  }
-                } on Exception catch (e) {
-                  setState(() {
-                    isLoading = false;
-                  });
-                  String? errorMessage = e.toString();
-                  Get.snackbar("Login Gagal :", "Masukkan Email dan Password Dengan Benar");
-                  await Future.delayed(Duration(seconds: 2));
-                  Get.back();
-                }
-              }
+              await loginUser();
             },
       child: Text(
         "Login",
         style: TextStyle(fontSize: 16, fontWeight: FontWeight.w400),
       ),
     );
+  }
+
+  Future<void> loginUser() async {
+    if (loginFormKey.currentState!.validate()) {
+      loginFormKey.currentState!.save();
+      setState(() {
+        isLoading = true;
+      });
+    
+      try {
+        final user = await authService.login(
+          emailController.text,
+          passwordController.text,
+        );
+    
+        if (user != null) {
+          final role = await firestoreService.getUserRole(user.uid);
+          setState(() {
+            isLoading = false;
+          });
+          if (role == 'admin') {
+            Get.snackbar(
+              "Login Berhasil",
+              "Selamat Datang Di ITC Directory",
+            );
+            Get.offAllNamed(AppRoutes.admin);
+          } else {
+            Get.snackbar(
+              "Login Berhasil",
+              "Selamat Datang Di ITC Directory",
+            );
+            Get.offAllNamed(AppRoutes.home);
+          }
+        }
+      } on Exception catch (e) {
+        setState(() {
+          isLoading = false;
+        });
+        Get.snackbar("Login Gagal :", "Masukkan Email dan Password Dengan Benar");
+        await Future.delayed(Duration(seconds: 3));
+        Get.back();
+      }
+    }
   }
 
   Container loginForm() {
