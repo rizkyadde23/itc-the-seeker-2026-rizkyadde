@@ -8,6 +8,7 @@ import 'package:seeker/pages/structure_page.dart';
 import 'package:seeker/routes/app_routes.dart';
 
 class HomePage extends StatelessWidget {
+  HomePage({super.key});
   final controller = Get.put(HomeController());
   double? deviceWidth, deviceHeight;
 

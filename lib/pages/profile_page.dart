@@ -151,15 +151,69 @@ class _ProfilePageState extends State<ProfilePage> {
                 SizedBox(height: 20),
 
                 if (isOwner || isAdmin)
-                  ElevatedButton(
-                    onPressed: () async {
-                      await Get.toNamed(
-                        AppRoutes.editProfile,
-                        arguments: member,
-                      );
-                      loadData();
-                    },
-                    child: Text("Edit Profile"),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisSize: MainAxisSize.max,
+                    children: [
+                      MaterialButton(
+                        color: Colors.green,
+                        onPressed: () async {
+                          await Get.toNamed(
+                            AppRoutes.editProfile,
+                            arguments: member,
+                          );
+                          loadData();
+                        },
+                        child: Text(
+                          "Edit Profile",
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ),
+                      if (isOwner && !isAdmin)
+                        MaterialButton(
+                          color: Colors.red,
+                          onPressed: () async {
+                            Get.defaultDialog(
+                              title: "Sign Out",
+                              middleText: "Apakah Kamu Yakin?",
+                              buttonColor: Colors.red,
+                              cancel: TextButton(
+                                onPressed: () => Get.back(),
+                                style: TextButton.styleFrom(
+                                  side: BorderSide.none,
+                                ),
+                                child: Text(
+                                  "Cancel",
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                              ),
+                              textConfirm: "Keluar",
+                              confirmTextColor: Colors.black,
+                              onConfirm: () async {
+                                try {
+                                  await FirebaseAuth.instance.signOut();
+                                  Get.back();
+                                  Get.offAllNamed(AppRoutes.login);
+                                  Get.snackbar(
+                                    "Signing Out",
+                                    "Anda Telah Keluar",
+                                  );
+                                } catch (e) {
+                                  Get.snackbar("Error", e.toString());
+                                }
+                              },
+                              onCancel: () {
+                                Get.back();
+                              },
+                            );
+                          },
+                          child: Text(
+                            "Sign Out",
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        ),
+                    ],
                   ),
 
                 SizedBox(height: 20),
