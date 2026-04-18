@@ -9,4 +9,5 @@ class AppRoutes {
   static const addDivision = '/add-division';
   static const inactive = '/inactive';
   static const divisionDesc = '/division-desc';
+  static const editDivison = '/edit-division';
 }

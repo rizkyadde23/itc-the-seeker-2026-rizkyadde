@@ -137,39 +137,6 @@ class _AdminPageState extends State<AdminPage> {
     );
   }
 
-  void showEditDivisionDialog(QueryDocumentSnapshot division) {
-    final nameController = TextEditingController(text: division['name']);
-    final descController = TextEditingController(text: division['description']);
-
-    Get.defaultDialog(
-      title: "Edit Divisi",
-      content: Column(
-        children: [
-          TextField(
-            controller: nameController,
-            decoration: InputDecoration(labelText: "Nama Divisi"),
-          ),
-          TextField(
-            controller: descController,
-            decoration: InputDecoration(labelText: "Deskripsi Divisi"),
-          ),
-        ],
-      ),
-      textConfirm: "Save",
-      textCancel: "Cancel",
-      confirmTextColor: Colors.white,
-      onConfirm: () async {
-        await FirebaseFirestore.instance
-            .collection('divisions')
-            .doc(division.id)
-            .update({'name': nameController.text, 'description': descController.text});
-
-        Get.back();
-        Get.snackbar("Success", "Divisi berhasil diupdate");
-      },
-    );
-  }
-
   void showDeleteDivisionDialog(QueryDocumentSnapshot division) {
     Get.defaultDialog(
       title: "Hapus Divisi",
@@ -218,7 +185,8 @@ class _AdminPageState extends State<AdminPage> {
                   children: [
                     IconButton(
                       icon: Icon(Icons.edit, color: Colors.blue),
-                      onPressed: () => showEditDivisionDialog(d),
+                      onPressed: () =>
+                          Get.toNamed(AppRoutes.editDivison, arguments: d),
                     ),
                     IconButton(
                       icon: Icon(Icons.delete, color: Colors.red),
