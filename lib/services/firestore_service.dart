@@ -5,6 +5,28 @@ import '../models/member_model.dart';
 class FirestoreService {
   final FirebaseFirestore _db = FirebaseFirestore.instance;
 
+  Future<Map<String, dynamic>?> getOrganization() async {
+  final doc = await FirebaseFirestore.instance
+      .collection('organization')
+      .doc('main')
+      .get();
+
+  return doc.data();
+}
+
+Future<void> updateOrganization(Map<String, dynamic> data) async {
+  final user = FirebaseAuth.instance.currentUser;
+
+  await FirebaseFirestore.instance
+      .collection('organization')
+      .doc('main')
+      .update({
+    ...data,
+    'updatedBy': user!.uid,
+    'updatedAt': FieldValue.serverTimestamp(),
+  });
+}
+
   Future<void> toggleFavorite(String memberId) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user == null) return;

@@ -6,11 +6,13 @@ import 'package:seeker/controllers/home_controller.dart';
 import 'package:seeker/pages/profile_page.dart';
 import 'package:seeker/pages/structure_page.dart';
 import 'package:seeker/routes/app_routes.dart';
+import 'package:seeker/services/firestore_service.dart';
 
 class HomePage extends StatelessWidget {
   HomePage({super.key});
   final controller = Get.put(HomeController());
   double? deviceWidth, deviceHeight;
+  final FirestoreService service = FirestoreService();
 
   @override
   Widget build(BuildContext context) {
@@ -75,9 +77,26 @@ class HomePage extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent dictum pellentesque magna, non condimentum velit commodo id. Phasellus ac libero at odio vehicula accumsan in in arcu. Nulla pretium elit nec placerat ornare. Suspendisse bibendum quam non elit tempus, vel fermentum nisl commodo. Aliquam ut facilisis elit. Duis arcu lectus, molestie eget gravida quis, hendrerit a odio. Duis id tortor quis risus imperdiet mattis. Proin laoreet lacus sed facilisis lobortis. Aliquam ligula nisl, scelerisque luctus sapien in, scelerisque aliquam metus. Vivamus accumsan rhoncus eros non ullamcorper.Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent dictum pellentesque magna, non condimentum velit commodo id. Phasellus ac libero at odio vehicula accumsan in in arcu. Nulla pretium elit nec placerat ornare. Suspendisse bibendum quam non elit tempus, vel fermentum nisl commodo. Aliquam ut facilisis elit. Duis arcu lectus, molestie eget gravida quis, hendrerit a odio. Duis id tortor quis risus imperdiet mattis. Proin laoreet lacus sed facilisis lobortis. Aliquam ligula nisl, scelerisque luctus sapien in, scelerisque aliquam metus. Vivamus accumsan rhoncus eros non ullamcorper.",
-                textAlign: TextAlign.justify,
+              FutureBuilder(
+                future: service.getOrganization(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) return SizedBox();
+
+                  final org = snapshot.data!;
+
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(org['name'], style: TextStyle(fontSize: 20)),
+                      SizedBox(height: 8),
+                      Text(org['description']),
+                      Text("Visi"),
+                      Text(org['vision']),
+                      Text("Misi"),
+                      Text(org['mission']),
+                    ],
+                  );
+                },
               ),
 
               SizedBox(height: 20),

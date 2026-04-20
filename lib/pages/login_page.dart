@@ -30,6 +30,7 @@ class _LoginPageState extends State<LoginPage> {
     deviceHeight = MediaQuery.of(context).size.height;
     deviceWidth = MediaQuery.of(context).size.width;
     return Scaffold(
+      resizeToAvoidBottomInset: true,
       appBar: AppBar(
         title: Text(
           "ITC DIRECTORY",
@@ -37,30 +38,36 @@ class _LoginPageState extends State<LoginPage> {
         ),
         centerTitle: true,
       ),
-      body: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: deviceWidth! * 0.05),
-          child: Stack(children: [mainUI(), if (isLoading) loadingWidget()]),
-        ),
+      body: Stack(
+        children: [
+          SingleChildScrollView(
+            child: SafeArea(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: deviceWidth! * 0.05),
+                child: mainUI(),
+              ),
+            ),
+          ),
+
+          if (isLoading) Center(child: loadingWidget()),
+        ],
       ),
     );
   }
 
-  Center loadingWidget() {
-    return Center(
-      child: Container(
-        alignment: Alignment.center,
-        width: deviceWidth! * 0.30,
-        height: deviceHeight! * 0.15,
-        decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(color: Colors.black, blurRadius: 5, spreadRadius: 1),
-          ],
-        ),
-        child: CircularProgressIndicator(
-          color: const Color.fromARGB(255, 41, 117, 248),
-        ),
+  Container loadingWidget() {
+    return Container(
+      alignment: Alignment.center,
+      width: deviceWidth! * 0.30,
+      height: deviceHeight! * 0.15,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(color: Colors.black, blurRadius: 5, spreadRadius: 1),
+        ],
+      ),
+      child: CircularProgressIndicator(
+        color: const Color.fromARGB(255, 41, 117, 248),
       ),
     );
   }
@@ -121,29 +128,23 @@ class _LoginPageState extends State<LoginPage> {
       setState(() {
         isLoading = true;
       });
-    
+
       try {
         final user = await authService.login(
           emailController.text,
           passwordController.text,
         );
-    
+
         if (user != null) {
           final role = await firestoreService.getUserRole(user.uid);
           setState(() {
             isLoading = false;
           });
           if (role == 'admin') {
-            Get.snackbar(
-              "Login Berhasil",
-              "Selamat Datang Di ITC Directory",
-            );
+            Get.snackbar("Login Berhasil", "Selamat Datang Di ITC Directory");
             Get.offAllNamed(AppRoutes.admin);
           } else {
-            Get.snackbar(
-              "Login Berhasil",
-              "Selamat Datang Di ITC Directory",
-            );
+            Get.snackbar("Login Berhasil", "Selamat Datang Di ITC Directory");
             Get.offAllNamed(AppRoutes.home);
           }
         }
@@ -151,7 +152,10 @@ class _LoginPageState extends State<LoginPage> {
         setState(() {
           isLoading = false;
         });
-        Get.snackbar("Login Gagal :", "Masukkan Email dan Password Dengan Benar");
+        Get.snackbar(
+          "Login Gagal :",
+          "Masukkan Email dan Password Dengan Benar",
+        );
         await Future.delayed(Duration(seconds: 3));
         Get.back();
       }

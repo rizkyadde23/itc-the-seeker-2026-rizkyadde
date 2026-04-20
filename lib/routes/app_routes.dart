@@ -10,4 +10,5 @@ class AppRoutes {
   static const inactive = '/inactive';
   static const divisionDesc = '/division-desc';
   static const editDivison = '/edit-division';
+  static const editOrganization = '/edit-organization';
 }

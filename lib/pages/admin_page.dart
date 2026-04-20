@@ -94,24 +94,34 @@ class _AdminPageState extends State<AdminPage> {
 
   // 🔥 QUICK ACTION
   Widget buildQuickActions() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        ElevatedButton.icon(
-          onPressed: () {
-            Get.toNamed(AppRoutes.addDivision);
-          },
-          icon: const Icon(Icons.apartment),
-          label: const Text("Add Division"),
-        ),
-        ElevatedButton.icon(
-          onPressed: () {
-            Get.toNamed(AppRoutes.inactive);
-          },
-          icon: const Icon(Icons.person_2),
-          label: const Text("Inactive Member"),
-        ),
-      ],
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          ElevatedButton.icon(
+            onPressed: () {
+              Get.toNamed(AppRoutes.editOrganization);
+            },
+            icon: const Icon(Icons.group_sharp),
+            label: const Text("Edit Organization"),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Get.toNamed(AppRoutes.addDivision);
+            },
+            icon: const Icon(Icons.apartment),
+            label: const Text("Add Division"),
+          ),
+          ElevatedButton.icon(
+            onPressed: () {
+              Get.toNamed(AppRoutes.inactive);
+            },
+            icon: const Icon(Icons.person_2),
+            label: const Text("Inactive Member"),
+          ),
+        ],
+      ),
     );
   }
 
