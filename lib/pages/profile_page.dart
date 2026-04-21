@@ -71,7 +71,13 @@ class _ProfilePageState extends State<ProfilePage> {
         final isAdmin = role == 'admin';
 
         return Scaffold(
-          appBar: AppBar(title: Text("Profile")),
+          appBar: AppBar(
+            forceMaterialTransparency: true,
+            title: Text(
+              "Profile",
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
           body: SingleChildScrollView(
             child: Column(
               children: [
@@ -129,7 +135,7 @@ class _ProfilePageState extends State<ProfilePage> {
 
                     return ListTile(
                       leading: Icon(Icons.apartment),
-                      title: Text(divisionName),
+                      title: Text(divisionName.toString().toUpperCase()),
                     );
                   },
                 ),
@@ -157,8 +163,14 @@ class _ProfilePageState extends State<ProfilePage> {
                     mainAxisSize: MainAxisSize.max,
                     children: [
                       MaterialButton(
+                        elevation: 5,
+                        splashColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                         color: Colors.green,
                         onPressed: () async {
+                          await Future.delayed(Duration(milliseconds: 600));
                           await Get.toNamed(
                             AppRoutes.editProfile,
                             arguments: member,
@@ -172,40 +184,53 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       if (isOwner && !isAdmin)
                         MaterialButton(
+                          elevation: 5,
+                          splashColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
                           color: Colors.red,
                           onPressed: () async {
                             Get.defaultDialog(
                               title: "Sign Out",
                               middleText: "Apakah Kamu Yakin?",
                               buttonColor: Colors.red,
-                              cancel: TextButton(
-                                onPressed: () => Get.back(),
-                                style: TextButton.styleFrom(
-                                  side: BorderSide.none,
+                              cancel: MaterialButton(
+                                elevation: 5,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
+                                color: Colors.white,
+                                onPressed: () => Get.back(),
                                 child: Text(
                                   "Cancel",
                                   style: TextStyle(color: Colors.black),
                                 ),
                               ),
-                              textConfirm: "Keluar",
-                              confirmTextColor: Colors.black,
-                              onConfirm: () async {
-                                try {
-                                  await FirebaseAuth.instance.signOut();
-                                  Get.back();
-                                  Get.offAllNamed(AppRoutes.login);
-                                  Get.snackbar(
-                                    "Signing Out",
-                                    "Anda Telah Keluar",
-                                  );
-                                } catch (e) {
-                                  Get.snackbar("Error", e.toString());
-                                }
-                              },
-                              onCancel: () {
-                                Get.back();
-                              },
+                              confirm: MaterialButton(
+                                elevation: 5,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                color: const Color.fromARGB(255, 255, 0, 0),
+                                onPressed: () async {
+                                  try {
+                                    await FirebaseAuth.instance.signOut();
+                                    Get.back();
+                                    Get.offAllNamed(AppRoutes.login);
+                                    Get.snackbar(
+                                      "Signing Out",
+                                      "Anda Telah Keluar",
+                                    );
+                                  } catch (e) {
+                                    Get.snackbar("Error", e.toString());
+                                  }
+                                },
+                                child: Text(
+                                  "Sing Out",
+                                  style: TextStyle(color: Colors.black),
+                                ),
+                              ),
                             );
                           },
                           child: Text(

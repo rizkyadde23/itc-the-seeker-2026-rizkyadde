@@ -88,6 +88,7 @@ class HomePage extends StatelessWidget {
     deviceWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(
+        forceMaterialTransparency: true,
         title: Text(
           "Profil Organisasi",
           style: TextStyle(fontWeight: FontWeight.bold),

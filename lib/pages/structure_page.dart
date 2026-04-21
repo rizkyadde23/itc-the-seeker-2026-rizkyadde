@@ -13,6 +13,7 @@ class StructurePage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
+        forceMaterialTransparency: true,
         title: const Text(
           "Struktur Organisasi",
           style: TextStyle(fontWeight: FontWeight.bold),

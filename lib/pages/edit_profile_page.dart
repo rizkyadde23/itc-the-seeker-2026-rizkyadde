@@ -31,6 +31,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
   bool isActive = true;
   bool isLoading = false;
 
+  double? deviceWidth, deviceHeight;
+
   @override
   void initState() {
     super.initState();
@@ -66,136 +68,175 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   @override
   Widget build(BuildContext context) {
+    deviceHeight = MediaQuery.of(context).size.height;
+    deviceWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(title: const Text("Edit Profile")),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: ListView(
-            children: [
-              // 🔥 NAME
-              TextFormField(
-                controller: nameController,
-                decoration: const InputDecoration(labelText: "Nama"),
-                validator: (v) => v!.isEmpty ? "Nama tidak boleh kosong" : null,
+      body: Stack(
+        children: [
+          mainUI(),
+          if (isLoading)
+            Center(child: loadingWidget(deviceHeight!, deviceWidth!)),
+        ],
+      ),
+    );
+  }
+
+  Container loadingWidget(double deviceHeight, double deviceWidth) {
+    return Container(
+      alignment: Alignment.center,
+      width: deviceWidth * 0.30,
+      height: deviceHeight * 0.15,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(color: Colors.black, blurRadius: 5, spreadRadius: 1),
+        ],
+      ),
+      child: CircularProgressIndicator(
+        color: const Color.fromARGB(255, 41, 117, 248),
+      ),
+    );
+  }
+
+  Padding mainUI() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Form(
+        key: _formKey,
+        child: ListView(
+          children: [
+            // 🔥 NAME
+            TextFormField(
+              controller: nameController,
+              decoration: const InputDecoration(labelText: "Nama"),
+              validator: (v) => v!.isEmpty ? "Nama tidak boleh kosong" : null,
+            ),
+
+            const SizedBox(height: 10),
+
+            // 🔥 PHONE
+            TextFormField(
+              controller: phoneController,
+              decoration: const InputDecoration(labelText: "Phone"),
+            ),
+
+            const SizedBox(height: 10),
+
+            // 🔥 INSTAGRAM
+            TextFormField(
+              controller: instagramController,
+              decoration: const InputDecoration(labelText: "Instagram"),
+            ),
+
+            const SizedBox(height: 10),
+
+            // 🔥 BIO
+            TextFormField(
+              controller: bioController,
+              decoration: const InputDecoration(labelText: "Bio"),
+              maxLines: 3,
+            ),
+
+            const SizedBox(height: 20),
+
+            if (isAdmin)
+              DropdownButtonFormField<String>(
+                initialValue: ["Active", "Inactive"].contains(selectedStatus)
+                    ? selectedStatus
+                    : "Active",
+                items: ["Active", "Inactive"]
+                    .map((r) => DropdownMenuItem(value: r, child: Text(r)))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedStatus = value!;
+                    isActive = selectedStatus == "Active" ? true : false;
+                  });
+                },
+                decoration: const InputDecoration(labelText: "Status"),
               ),
 
-              const SizedBox(height: 10),
+            const SizedBox(height: 20),
 
-              // 🔥 PHONE
-              TextFormField(
-                controller: phoneController,
-                decoration: const InputDecoration(labelText: "Phone"),
+            // 🔥 DIVISION (ADMIN ONLY)
+            if (isAdmin && isActive)
+              StreamBuilder(
+                stream: service.getDivisions(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const CircularProgressIndicator();
+                  }
+
+                  final divisions = snapshot.data!.docs;
+
+                  return DropdownButtonFormField<String>(
+                    initialValue:
+                        divisions.any((d) => d.id == selectedDivisionId)
+                        ? selectedDivisionId
+                        : null,
+                    hint: const Text("Pilih Divisi"),
+                    items: divisions.map<DropdownMenuItem<String>>((d) {
+                      return DropdownMenuItem(
+                        value: d.id,
+                        child: Text(d['name']),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedDivisionId = value;
+
+                        // 🔥 reset role kalau division berubah
+                        selectedRole = "Anggota";
+                      });
+                    },
+                    decoration: const InputDecoration(labelText: "Division"),
+                  );
+                },
               ),
 
-              const SizedBox(height: 10),
+            const SizedBox(height: 20),
 
-              // 🔥 INSTAGRAM
-              TextFormField(
-                controller: instagramController,
-                decoration: const InputDecoration(labelText: "Instagram"),
-              ),
-
-              const SizedBox(height: 10),
-
-              // 🔥 BIO
-              TextFormField(
-                controller: bioController,
-                decoration: const InputDecoration(labelText: "Bio"),
-                maxLines: 3,
-              ),
-
-              const SizedBox(height: 20),
-
-              if (isAdmin)
-                DropdownButtonFormField<String>(
-                  initialValue: ["Active", "Inactive"].contains(selectedStatus)
-                      ? selectedStatus
-                      : "Active",
-                  items: ["Active", "Inactive"]
-                      .map((r) => DropdownMenuItem(value: r, child: Text(r)))
-                      .toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      selectedStatus = value!;
-                      isActive = selectedStatus == "Active" ? true : false;
-                    });
-                  },
-                  decoration: const InputDecoration(labelText: "Status"),
-                ),
-
-              const SizedBox(height: 20),
-
-              // 🔥 DIVISION (ADMIN ONLY)
-              if (isAdmin && isActive)
-                StreamBuilder(
-                  stream: service.getDivisions(),
-                  builder: (context, snapshot) {
-                    if (!snapshot.hasData) {
-                      return const CircularProgressIndicator();
-                    }
-
-                    final divisions = snapshot.data!.docs;
-
-                    return DropdownButtonFormField<String>(
-                      initialValue:
-                          divisions.any((d) => d.id == selectedDivisionId)
-                          ? selectedDivisionId
-                          : null,
-                      hint: const Text("Pilih Divisi"),
-                      items: divisions.map<DropdownMenuItem<String>>((d) {
-                        return DropdownMenuItem(
-                          value: d.id,
-                          child: Text(d['name']),
-                        );
-                      }).toList(),
-                      onChanged: (value) {
+            // 🔥 ROLE (ADMIN ONLY)
+            if (isAdmin && isActive)
+              DropdownButtonFormField<String>(
+                initialValue:
+                    ["Anggota", "Ketua", "Wakil"].contains(selectedRole)
+                    ? selectedRole
+                    : "Anggota",
+                items: ["Anggota", "Ketua", "Wakil"]
+                    .map((r) => DropdownMenuItem(value: r, child: Text(r)))
+                    .toList(),
+                onChanged: selectedDivisionId == null
+                    ? null // 🔥 disable kalau belum pilih divisi
+                    : (value) {
                         setState(() {
-                          selectedDivisionId = value;
-
-                          // 🔥 reset role kalau division berubah
-                          selectedRole = "Anggota";
+                          selectedRole = value!;
                         });
                       },
-                      decoration: const InputDecoration(labelText: "Division"),
-                    );
-                  },
-                ),
-
-              const SizedBox(height: 20),
-
-              // 🔥 ROLE (ADMIN ONLY)
-              if (isAdmin && isActive)
-                DropdownButtonFormField<String>(
-                  initialValue:
-                      ["Anggota", "Ketua", "Wakil"].contains(selectedRole)
-                      ? selectedRole
-                      : "Anggota",
-                  items: ["Anggota", "Ketua", "Wakil"]
-                      .map((r) => DropdownMenuItem(value: r, child: Text(r)))
-                      .toList(),
-                  onChanged: selectedDivisionId == null
-                      ? null // 🔥 disable kalau belum pilih divisi
-                      : (value) {
-                          setState(() {
-                            selectedRole = value!;
-                          });
-                        },
-                  decoration: const InputDecoration(labelText: "Role"),
-                ),
-
-              const SizedBox(height: 30),
-
-              // 🔥 SAVE BUTTON
-              ElevatedButton(
-                onPressed: isLoading ? null : updateProfile,
-                child: isLoading
-                    ? const CircularProgressIndicator(color: Colors.white)
-                    : const Text("Save"),
+                decoration: const InputDecoration(labelText: "Role"),
               ),
-            ],
-          ),
+
+            const SizedBox(height: 30),
+
+            // 🔥 SAVE BUTTON
+            MaterialButton(
+              color: Colors.green,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              elevation: 5,
+              onPressed: updateProfile,
+              child: const Text(
+                "Save",
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -241,7 +282,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
         updateData['divisionId'] = null;
         updateData['role'] = 'Anggota';
         await service.deactivateMember(member);
-
       }
 
       // 🔥 hanya kirim division kalau valid
