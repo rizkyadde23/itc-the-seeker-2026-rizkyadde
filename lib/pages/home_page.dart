@@ -18,10 +18,17 @@ class HomePage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+        shadowColor: Colors.black,
+        elevation: 5,
         centerTitle: true,
         title: Text(
-          "ITC Directory",
-          style: TextStyle(fontSize: 24, fontWeight: FontWeight.w600),
+          "ITC DIRECTORY",
+          style: TextStyle(
+            color: Colors.white,
+            fontSize: 24,
+            fontWeight: FontWeight.w600,
+          ),
         ),
         backgroundColor: Colors.green,
       ),
@@ -34,29 +41,43 @@ class HomePage extends StatelessWidget {
         ),
       ),
       bottomNavigationBar: Obx(
-        () => BottomNavigationBar(
-          currentIndex: controller.currentIndex.value,
-          onTap: controller.changeIndex,
-          items: const [
-            BottomNavigationBarItem(
-              activeIcon: Icon(Icons.home_sharp, color: Colors.green),
-              icon: Icon(
-                Icons.home_outlined,
-                color: Color.fromARGB(255, 0, 0, 0),
+        () => Container(
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: const Color.fromARGB(255, 65, 65, 65),
+                spreadRadius: 0.5,
+                blurRadius: 10,
               ),
-              label: "Home",
-            ),
-            BottomNavigationBarItem(
-              activeIcon: Icon(Icons.account_tree, color: Colors.green),
-              icon: Icon(Icons.account_tree_outlined, color: Colors.black),
-              label: "Structure",
-            ),
-            BottomNavigationBarItem(
-              activeIcon: Icon(Icons.person, color: Colors.green),
-              icon: Icon(Icons.person_2_outlined, color: Colors.black),
-              label: "Profile",
-            ),
-          ],
+            ],
+          ),
+          child: BottomNavigationBar(
+            elevation: 5,
+            iconSize: 28,
+            backgroundColor: Colors.white,
+            currentIndex: controller.currentIndex.value,
+            onTap: controller.changeIndex,
+            items: const [
+              BottomNavigationBarItem(
+                activeIcon: Icon(Icons.home_sharp, color: Colors.green),
+                icon: Icon(
+                  Icons.home_outlined,
+                  color: Color.fromARGB(255, 0, 0, 0),
+                ),
+                label: "Home",
+              ),
+              BottomNavigationBarItem(
+                activeIcon: Icon(Icons.account_tree, color: Colors.green),
+                icon: Icon(Icons.account_tree_outlined, color: Colors.black),
+                label: "Structure",
+              ),
+              BottomNavigationBarItem(
+                activeIcon: Icon(Icons.person, color: Colors.green),
+                icon: Icon(Icons.person_2_outlined, color: Colors.black),
+                label: "Profile",
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -66,7 +87,12 @@ class HomePage extends StatelessWidget {
     deviceHeight = MediaQuery.of(context).size.height;
     deviceWidth = MediaQuery.of(context).size.width;
     return Scaffold(
-      appBar: AppBar(title: Text("Tentang ITC")),
+      appBar: AppBar(
+        title: Text(
+          "Profil Organisasi",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
       body: SingleChildScrollView(
         physics: BouncingScrollPhysics(
           decelerationRate: ScrollDecelerationRate.fast,
@@ -87,12 +113,32 @@ class HomePage extends StatelessWidget {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(org['name'], style: TextStyle(fontSize: 20)),
+                      Text(
+                        org['name'],
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       SizedBox(height: 8),
                       Text(org['description']),
-                      Text("Visi"),
+                      SizedBox(height: 8),
+                      Text(
+                        "Visi",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      SizedBox(height: 8),
                       Text(org['vision']),
-                      Text("Misi"),
+                      Text(
+                        "Misi",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
                       Text(org['mission']),
                     ],
                   );
@@ -105,26 +151,55 @@ class HomePage extends StatelessWidget {
                 "Ketua",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-              ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: NetworkImage("https://i.pravatar.cc/300"),
+              Card(
+                shadowColor: Colors.black,
+                elevation: 8,
+                color: const Color.fromARGB(255, 51, 120, 53),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundImage: NetworkImage("https://i.pravatar.cc/300"),
+                  ),
+                  title: Text(
+                    "Nama Ketua",
+                    style: TextStyle(
+                      fontSize: 20,
+                      color: Colors.white,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  subtitle: Text(
+                    "Ketua Umum",
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
-                title: Text("Nama Ketua"),
-                subtitle: Text("Ketua Umum"),
+              ),
+
+              SizedBox(height: 20),
+              Text(
+                "Wakil Ketua",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              Card(
+                color: Colors.greenAccent,
+                shadowColor: Colors.black,
+                elevation: 8,
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundImage: NetworkImage("https://i.pravatar.cc/300"),
+                  ),
+                  title: Text(
+                    "Nama Wakil Ketua",
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w500),
+                  ),
+                  subtitle: Text("Wakil Ketua Umum,"),
+                ),
               ),
 
               SizedBox(height: 20),
 
               Text(
-                "Wakil Ketua",
+                "Favorite",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-              ),
-              ListTile(
-                leading: CircleAvatar(
-                  backgroundImage: NetworkImage("https://i.pravatar.cc/300"),
-                ),
-                title: Text("Nama Wakil Ketua"),
-                subtitle: Text("Wakil Ketua Umum"),
               ),
 
               SizedBox(height: 20),
@@ -146,13 +221,6 @@ class HomePage extends StatelessWidget {
                   return Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        "⭐ Favorite Members",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-
-                      SizedBox(height: 10),
-
                       ...favorites.map((id) {
                         return FutureBuilder<DocumentSnapshot>(
                           future: FirebaseFirestore.instance
@@ -164,12 +232,23 @@ class HomePage extends StatelessWidget {
 
                             final m = snap.data!;
 
-                            return ListTile(
-                              title: Text(m['name']),
-                              trailing: Icon(Icons.favorite, color: Colors.red),
-                              onTap: () {
-                                Get.toNamed(AppRoutes.profile, arguments: m.id);
-                              },
+                            return Card(
+                              color: Colors.white,
+                              shadowColor: Colors.black,
+                              elevation: 5,
+                              child: ListTile(
+                                title: Text(m['name']),
+                                trailing: Icon(
+                                  Icons.favorite,
+                                  color: Colors.red,
+                                ),
+                                onTap: () {
+                                  Get.toNamed(
+                                    AppRoutes.profile,
+                                    arguments: m.id,
+                                  );
+                                },
+                              ),
                             );
                           },
                         );

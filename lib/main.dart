@@ -28,6 +28,13 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return GetMaterialApp(
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+          selectedItemColor: Colors.green[700],
+          unselectedItemColor: const Color.fromARGB(255, 0, 0, 0),
+          selectedLabelStyle: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
       home: LoginPage(),
       getPages: [
         GetPage(name: '/login', page: () => LoginPage()),
