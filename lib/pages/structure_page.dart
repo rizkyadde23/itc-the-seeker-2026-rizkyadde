@@ -12,7 +12,12 @@ class StructurePage extends StatelessWidget {
     final userId = FirebaseAuth.instance.currentUser!.uid;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Struktur Organisasi")),
+      appBar: AppBar(
+        title: const Text(
+          "Struktur Organisasi",
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+      ),
       body: StreamBuilder<DocumentSnapshot>(
         stream: FirebaseFirestore.instance
             .collection('users')
@@ -111,6 +116,9 @@ class DivisionCardOptimized extends StatelessWidget {
         Get.toNamed(AppRoutes.divisionDesc, arguments: divisionId);
       },
       child: Card(
+        color: Colors.white,
+        shadowColor: Colors.black,
+        elevation: 8,
         margin: const EdgeInsets.all(12),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: Padding(
@@ -120,7 +128,7 @@ class DivisionCardOptimized extends StatelessWidget {
             children: [
               // 🔥 NAMA DIVISI
               Text(
-                division['name'],
+                division['name'].toString().toUpperCase(),
                 style: const TextStyle(
                   fontSize: 18,
                   fontWeight: FontWeight.bold,
@@ -132,14 +140,14 @@ class DivisionCardOptimized extends StatelessWidget {
               // 🔥 LEADER
               Text(
                 leaderId != ''
-                    ? "👑 Ketua: ${_getLeaderName()}"
-                    : "👑 Belum ada ketua",
+                    ? "Kepala Divisi: ${_getLeaderName()}"
+                    : "Belum Ada Kepala Divisi",
               ),
 
               Text(
                 viceLeaderId != ''
-                    ? "👑 Wakil: ${_getViceLeaderName()}"
-                    : "👑 Belum ada wakil",
+                    ? "Wakil Kepala Divisi: ${_getViceLeaderName()}"
+                    : "Belum Ada Wakil",
               ),
 
               const SizedBox(height: 10),

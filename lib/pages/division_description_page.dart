@@ -24,6 +24,11 @@ class DivisionPage extends StatelessWidget {
           children: [
             _buildDivisionDetail(divisionId),
             const SizedBox(height: 16),
+            Text(
+              "Daftar Member",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
             _buildMemberList(divisionId),
           ],
         ),
@@ -54,20 +59,27 @@ class DivisionPage extends StatelessWidget {
           margin: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
-            color: Colors.blue.shade50,
+            color: Colors.greenAccent,
+            boxShadow: [
+              BoxShadow(
+                color: const Color.fromARGB(192, 84, 84, 84),
+                blurRadius: 8,
+                spreadRadius: 1,
+              ),
+            ],
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                data['name'] ?? 'No Name',
+                data['name'].toString().toUpperCase(),
                 style: const TextStyle(
                   fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: 8),
-              Text(data['description'] ?? 'No Description'),
+              Text(data['description']),
             ],
           ),
         );
@@ -106,6 +118,9 @@ class DivisionPage extends StatelessWidget {
             final data = doc.data() as Map<String, dynamic>;
 
             return Card(
+              color: Colors.white,
+              shadowColor: Colors.black,
+              elevation: 5,
               margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
               child: ListTile(
                 leading: const CircleAvatar(child: Icon(Icons.person)),
