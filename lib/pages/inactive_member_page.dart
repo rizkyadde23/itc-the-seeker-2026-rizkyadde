@@ -37,20 +37,62 @@ class InactiveMembersPage extends StatelessWidget {
               final m = members[index];
 
               return Card(
+                elevation: 5,
+                color: Colors.redAccent,
                 margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
                 child: ListTile(
                   leading: CircleAvatar(child: Text(m.name[0])),
-                  title: Text(m.name),
-                  subtitle: Text("Status: ${m.status}"),
+                  title: Text(m.name, style: TextStyle(color: Colors.white)),
+                  subtitle: Text(
+                    "Status: ${m.status}",
+                    style: TextStyle(color: Colors.white),
+                  ),
 
                   // 🔥 tombol aktifkan lagi
                   trailing: IconButton(
-                    icon: Icon(Icons.refresh, color: Colors.green),
+                    icon: Icon(
+                      Icons.refresh_rounded,
+                      color: Colors.green,
+                      size: 28,
+                    ),
                     onPressed: () async {
-                      await service.updateMemberPartial(m.id, {
-                        'status': 'Active',
-                      });
-                      Get.snackbar("Berhasil", "Member Telah Diaktifkan lagi");
+                      Get.defaultDialog(
+                        title: "Mengaktifkan Member",
+                        middleText: "Apakah Kamu Yakin?",
+                        cancel: MaterialButton(
+                          elevation: 5,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          color: Colors.white,
+                          onPressed: () => Get.back(),
+                          child: Text(
+                            "Cancel",
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        ),
+                        confirm: MaterialButton(
+                          elevation: 5,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          color: const Color.fromARGB(255, 1, 253, 5),
+                          onPressed: () async {
+                            await service.updateMemberPartial(m.id, {
+                              'status': 'Active',
+                            });
+                            Get.back();
+                            Get.snackbar(
+                              "Berhasil",
+                              "Member Telah Diaktifkan lagi",
+                            );
+                          },
+                          child: Text(
+                            "Aktifkan",
+                            style: TextStyle(color: Colors.black),
+                          ),
+                        ),
+                      );
                     },
                   ),
                 ),

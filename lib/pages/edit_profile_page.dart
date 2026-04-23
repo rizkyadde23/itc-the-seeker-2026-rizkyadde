@@ -76,17 +76,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
         children: [
           mainUI(),
           if (isLoading)
-            Center(child: loadingWidget(deviceHeight!, deviceWidth!)),
+            Center(child: loadingWidget()),
         ],
       ),
     );
   }
 
-  Container loadingWidget(double deviceHeight, double deviceWidth) {
+  Container loadingWidget() {
     return Container(
       alignment: Alignment.center,
-      width: deviceWidth * 0.30,
-      height: deviceHeight * 0.15,
+      width: deviceWidth! * 0.30,
+      height: deviceHeight! * 0.15,
       decoration: BoxDecoration(
         color: Colors.white,
         boxShadow: [
@@ -101,7 +101,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   Padding mainUI() {
     return Padding(
-      padding: const EdgeInsets.all(16),
+      padding: EdgeInsets.symmetric(horizontal: deviceWidth!*0.05),
       child: Form(
         key: _formKey,
         child: ListView(

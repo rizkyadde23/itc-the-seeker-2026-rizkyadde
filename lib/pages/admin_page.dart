@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:seeker/models/member_model.dart';
@@ -47,8 +48,10 @@ class _AdminPageState extends State<AdminPage> {
   Widget _statCard(String title, String value, IconData icon) {
     return Expanded(
       child: Card(
+        color: Colors.greenAccent,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        elevation: 3,
+        elevation: 5,
+        shadowColor: Colors.black,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 16),
           child: Column(
@@ -99,26 +102,73 @@ class _AdminPageState extends State<AdminPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          ElevatedButton.icon(
+          MaterialButton(
             onPressed: () {
               Get.toNamed(AppRoutes.editOrganization);
             },
-            icon: const Icon(Icons.group_sharp),
-            label: const Text("Edit Organization"),
+            color: Colors.lightGreen,
+            elevation: 5,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.group, color: Colors.white),
+                Text(
+                  "Edit Organization",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
-          ElevatedButton.icon(
+          SizedBox(width: 8),
+          MaterialButton(
             onPressed: () {
               Get.toNamed(AppRoutes.addDivision);
             },
-            icon: const Icon(Icons.apartment),
-            label: const Text("Add Division"),
+            color: const Color.fromARGB(255, 25, 107, 23),
+            elevation: 5,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.apartment, color: Colors.white),
+                Text(
+                  "Add Division",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
-          ElevatedButton.icon(
+          SizedBox(width: 8),
+          MaterialButton(
             onPressed: () {
               Get.toNamed(AppRoutes.inactive);
             },
-            icon: const Icon(Icons.person_2),
-            label: const Text("Inactive Member"),
+            color: const Color.fromARGB(255, 16, 188, 13),
+            elevation: 5,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Row(
+              children: [
+                Icon(Icons.person, color: Colors.white),
+                Text(
+                  "Inactive Member",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
+            ),
           ),
         ],
       ),
@@ -128,39 +178,92 @@ class _AdminPageState extends State<AdminPage> {
   // 🔥 DELETE CONFIRM
   void showDeactivateMemberDialog(Member member) {
     Get.defaultDialog(
-      title: "Nonaktifkan Member",
-      middleText: "Yakin ingin menonaktifkan member ini?",
-      textConfirm: "Nonaktifkan",
-      textCancel: "Batal",
-      confirmTextColor: Colors.white,
-      onConfirm: () async {
-        await FirebaseFirestore.instance
-            .collection('members')
-            .doc(member.id)
-            .update({'status': 'Inactive'});
+      title: "Nonaktifkan Member?",
+      middleText: "Apakah Kamu Yakin?",
+      buttonColor: Colors.red,
+      cancel: MaterialButton(
+        elevation: 5,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        color: Colors.white,
+        onPressed: () => Get.back(),
+        child: Text("Cancel", style: TextStyle(color: Colors.black)),
+      ),
+      confirm: MaterialButton(
+        elevation: 5,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        color: const Color.fromARGB(255, 255, 0, 0),
+        onPressed: () async {
+          await FirebaseFirestore.instance
+              .collection('members')
+              .doc(member.id)
+              .update({'status': 'Inactive'});
 
-        setState(() {
-          Get.back();
-        });
-        Get.snackbar("Success", "Member dinonaktifkan");
-      },
+          setState(() {
+            Get.back();
+          });
+          Get.snackbar("Success", "Member dinonaktifkan");
+        },
+        child: Text("Nonaktifkan", style: TextStyle(color: Colors.black)),
+      ),
     );
   }
 
   void showDeleteDivisionDialog(QueryDocumentSnapshot division) {
     Get.defaultDialog(
-      title: "Hapus Divisi",
-      middleText: "Semua anggota akan keluar dari divisi ini. Yakin?",
-      textConfirm: "Hapus",
-      textCancel: "Batal",
-      confirmTextColor: Colors.white,
-      onConfirm: () async {
-        await FirestoreService().deleteDivision(division.id);
-        setState(() {
-          Get.back();
-        });
-        Get.snackbar("Success", "Divisi berhasil dihapus");
-      },
+      title: "Delete Divisi",
+      middleText: "Apakah Kamu Yakin?",
+      buttonColor: Colors.red,
+      cancel: MaterialButton(
+        elevation: 5,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        color: Colors.white,
+        onPressed: () => Get.back(),
+        child: Text("Cancel", style: TextStyle(color: Colors.black)),
+      ),
+      confirm: MaterialButton(
+        elevation: 5,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        color: const Color.fromARGB(255, 255, 0, 0),
+        onPressed: () async {
+          await FirestoreService().deleteDivision(division.id);
+          setState(() {
+            Get.back();
+          });
+          Get.snackbar("Success", "Divisi berhasil dihapus");
+        },
+        child: Text("Delete", style: TextStyle(color: Colors.black)),
+      ),
+    );
+  }
+
+  void showSignOutDialog() {
+    Get.defaultDialog(
+      title: "Sign Out",
+      middleText: "Apakah Kamu Yakin?",
+      buttonColor: Colors.red,
+      cancel: MaterialButton(
+        elevation: 5,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        color: Colors.white,
+        onPressed: () => Get.back(),
+        child: Text("Cancel", style: TextStyle(color: Colors.black)),
+      ),
+      confirm: MaterialButton(
+        elevation: 5,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        color: const Color.fromARGB(255, 255, 0, 0),
+        onPressed: () async {
+          try {
+            await FirebaseAuth.instance.signOut();
+            Get.back();
+            Get.offAllNamed(AppRoutes.login);
+            Get.snackbar("Signing Out", "Anda Telah Keluar");
+          } catch (e) {
+            Get.snackbar("Error", e.toString());
+          }
+        },
+        child: Text("Sing Out", style: TextStyle(color: Colors.black)),
+      ),
     );
   }
 
@@ -175,34 +278,33 @@ class _AdminPageState extends State<AdminPage> {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "Divisions",
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
-
             ...divisions.map((d) {
-              return ListTile(
-                leading: Icon(Icons.apartment),
-                title: Text(d['name']),
-                subtitle: Text(
-                  d['leaderId'] != "" ? "Leader assigned" : "Belum ada ketua",
-                ),
+              return Card(
+                elevation: 5,
+                shadowColor: Colors.black,
+                color: Colors.white,
+                child: ListTile(
+                  leading: Icon(Icons.apartment),
+                  title: Text(d['name']),
+                  subtitle: Text(
+                    d['leaderId'] != "" ? "Leader assigned" : "Belum ada ketua",
+                  ),
 
-                // 🔥 ACTION BUTTONS
-                trailing: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.edit, color: Colors.blue),
-                      onPressed: () =>
-                          Get.toNamed(AppRoutes.editDivison, arguments: d),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
-                      onPressed: () => showDeleteDivisionDialog(d),
-                    ),
-                  ],
+                  // 🔥 ACTION BUTTONS
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      IconButton(
+                        icon: Icon(Icons.edit, color: Colors.blue),
+                        onPressed: () =>
+                            Get.toNamed(AppRoutes.editDivison, arguments: d),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.delete, color: Colors.red),
+                        onPressed: () => showDeleteDivisionDialog(d),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }),
@@ -244,6 +346,9 @@ class _AdminPageState extends State<AdminPage> {
               doc.id,
             );
             return Card(
+              color: Colors.white,
+              shadowColor: Colors.black,
+              elevation: 5,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(12),
               ),
@@ -262,7 +367,7 @@ class _AdminPageState extends State<AdminPage> {
                       },
                     ),
 
-                    // 🔥 DELETE
+                    //Nonactive
                     IconButton(
                       icon: const Icon(
                         Icons.power_settings_new,
@@ -285,7 +390,30 @@ class _AdminPageState extends State<AdminPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Admin Dashboard"), centerTitle: true),
+      appBar: AppBar(
+        actions: [
+          IconButton(
+            iconSize: 28,
+            onPressed: () {
+              showSignOutDialog();
+            },
+            icon: Icon(Icons.logout_sharp, color: Colors.red),
+          ),
+        ],
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(40)),
+        shadowColor: Colors.black,
+        elevation: 5,
+        backgroundColor: Colors.green,
+        title: const Text(
+          "Admin Dashboard",
+          style: TextStyle(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        centerTitle: true,
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -321,16 +449,29 @@ class _AdminPageState extends State<AdminPage> {
             const Align(
               alignment: Alignment.centerLeft,
               child: Text(
-                "Member Management",
+                "Organization Management",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
             ),
 
             const SizedBox(height: 10),
 
+            Text(
+              "Divisions",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+
+            SizedBox(height: 10),
+
             buildDivisionList(),
 
             const SizedBox(height: 10),
+            Text(
+              "Members",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+
             // 🔥 MEMBER LIST
             buildMemberList(),
           ],

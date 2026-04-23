@@ -14,46 +14,87 @@ class _AddDivisionPageState extends State<AddDivisionPage> {
   final nameController = TextEditingController();
   final descController = TextEditingController();
   final _formKey = GlobalKey<FormState>();
+  double? deviceHeight, deviceWidth;
 
   bool isLoading = false;
 
   @override
   Widget build(BuildContext context) {
+    deviceHeight = MediaQuery.of(context).size.height;
+    deviceWidth = MediaQuery.of(context).size.width;
     return Scaffold(
       appBar: AppBar(title: Text("Tambah Divisi")),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              TextFormField(
-                controller: nameController,
-                decoration: InputDecoration(labelText: "Nama Divisi"),
-                validator: (v) => v!.isEmpty ? "Nama tidak boleh kosong" : null,
+      body: Stack(
+        children: [
+          mainUI(),
+          if (isLoading)
+            Center(child: loadingWidget()),
+        ],
+      ),
+    );
+  }
+
+  Padding mainUI() {
+    return Padding(
+      padding: EdgeInsets.symmetric(horizontal: deviceWidth! * 0.05),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          children: [
+            TextFormField(
+              controller: nameController,
+              decoration: InputDecoration(labelText: "Nama Divisi"),
+              validator: (v) => v!.isEmpty ? "Nama tidak boleh kosong" : null,
+            ),
+
+            SizedBox(height: 20),
+
+            TextFormField(
+              controller: descController,
+              decoration: InputDecoration(
+                labelText: "Deskripsi Divisi",
+                hintText: "Opsional",
               ),
+            ),
 
-              SizedBox(height: 20),
+            SizedBox(height: 20),
 
-              TextFormField(
-                controller: descController,
-                decoration: InputDecoration(
-                  labelText: "Deskripsi Divisi",
-                  hintText: "Opsional",
+            MaterialButton(
+              minWidth: deviceWidth! * 0.7,
+              color: Colors.green,
+              elevation: 5,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              onPressed: isLoading ? null : addDivision,
+              child: Text(
+                "Tambah Divisi",
+                style: TextStyle(
+                  fontSize: 20,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
-
-              SizedBox(height: 20),
-
-              ElevatedButton(
-                onPressed: isLoading ? null : addDivision,
-                child: isLoading
-                    ? CircularProgressIndicator(color: Colors.white)
-                    : Text("Tambah Divisi"),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Container loadingWidget() {
+    return Container(
+      alignment: Alignment.center,
+      width: deviceWidth! * 0.30,
+      height: deviceHeight! * 0.15,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(color: Colors.black, blurRadius: 5, spreadRadius: 1),
+        ],
+      ),
+      child: CircularProgressIndicator(
+        color: const Color.fromARGB(255, 41, 117, 248),
       ),
     );
   }
@@ -67,7 +108,9 @@ class _AddDivisionPageState extends State<AddDivisionPage> {
       await service.addDivision(nameController.text, descController.text);
 
       Get.snackbar("Success", "Divisi berhasil ditambahkan");
-
+      setState(() {
+        isLoading = false;
+      });
       Get.offAllNamed(AppRoutes.admin);
     } catch (e) {
       Get.snackbar("Error", e.toString());
