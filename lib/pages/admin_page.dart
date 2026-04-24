@@ -14,11 +14,8 @@ class AdminPage extends StatefulWidget {
 }
 
 class _AdminPageState extends State<AdminPage> {
-  // 🔥 GET STATS
   Future<Map<String, int>> getStats() async {
     try {
-      print("START GET STATS");
-
       final members = await FirebaseFirestore.instance
           .collection('members')
           .get();
@@ -30,8 +27,6 @@ class _AdminPageState extends State<AdminPage> {
           .get();
 
       int adminCount = users.docs.where((e) => e['role'] == 'admin').length;
-
-      print("SUCCESS GET STATS");
 
       return {
         'members': members.docs.length,
@@ -193,11 +188,7 @@ class _AdminPageState extends State<AdminPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         color: const Color.fromARGB(255, 255, 0, 0),
         onPressed: () async {
-          await FirebaseFirestore.instance
-              .collection('members')
-              .doc(member.id)
-              .update({'status': 'Inactive'});
-
+          await FirestoreService().deactivateMember(member);
           setState(() {
             Get.back();
           });
@@ -255,21 +246,20 @@ class _AdminPageState extends State<AdminPage> {
         onPressed: () async {
           try {
             await FirebaseAuth.instance.signOut();
-            Get.back();
             Get.offAllNamed(AppRoutes.login);
             Get.snackbar("Signing Out", "Anda Telah Keluar");
           } catch (e) {
             Get.snackbar("Error", e.toString());
           }
         },
-        child: Text("Sing Out", style: TextStyle(color: Colors.black)),
+        child: Text("Sign Out", style: TextStyle(color: Colors.black)),
       ),
     );
   }
 
   Widget buildDivisionList() {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance.collection('divisions').snapshots(),
+      stream: FirestoreService().getDivisions(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) return CircularProgressIndicator();
 
@@ -418,7 +408,6 @@ class _AdminPageState extends State<AdminPage> {
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
-            // 🔥 OVERVIEW
             FutureBuilder<Map<String, int>>(
               future: getStats(),
               builder: (context, snapshot) {
