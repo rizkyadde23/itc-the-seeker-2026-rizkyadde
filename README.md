@@ -40,7 +40,7 @@ ndk buildToolsVersion	30.0.14904198	Versi Android Build Tools
 #### 3. Jalankan Aplikasi
 ## Getting Started Via Full Project Folder  
 #### 1. Clone Repository
-<pre>git clone https://github.com/your-username/seeker-app.git</pre>
+<pre>git clone https://github.com/rizkyadde23/itc-the-seeker-2026-rizkyadde.git</pre>
 #### 2. Open Project
 ## Buka project menggunakan Android Studio / VSCODE
 ### Sync Gradle Untuk Menjalankan Aplikasi ke Emulator Android   
