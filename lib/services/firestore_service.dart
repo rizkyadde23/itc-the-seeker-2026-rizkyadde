@@ -75,12 +75,20 @@ Future<void> updateOrganization(Map<String, dynamic> data) async {
   Future<void> deactivateMember(Member member) async {
     final batch = _db.batch();
 
-    if (member.role == "Ketua" && member.divisionId.isNotEmpty) {
-      await removeLeader(member.divisionId);
+    if (member.role == "Kepala Divisi" && member.divisionId.isNotEmpty) {
+      await removeHead(member.divisionId);
     }
 
-    if (member.role == "Wakil" && member.divisionId.isNotEmpty) {
-      await removeViceLeader(member.divisionId);
+    if (member.role == "Wakil Kepala Divisi" && member.divisionId.isNotEmpty) {
+      await removeViceHead(member.divisionId);
+    }
+
+    if (member.globalRole == "Ketua Umum" && member.id.isNotEmpty) {
+      await removeGeneralLeader();
+    }
+
+    if (member.globalRole == "Wakil Ketua Umum" && member.id.isNotEmpty) {
+      await removeGeneralViceLeader();
     }
 
     final ref = _db.collection('members').doc(member.id);
@@ -89,12 +97,13 @@ Future<void> updateOrganization(Map<String, dynamic> data) async {
       'status': 'Inactive',
       'divisionId': '',
       'role': 'Anggota',
+      'globalRole': 'General',
     });
 
     await batch.commit();
   }
 
-  Future<void> assignLeader({
+  Future<void> assignHead({
     required String divisionId,
     required String memberId,
   }) async {
@@ -102,28 +111,28 @@ Future<void> updateOrganization(Map<String, dynamic> data) async {
 
     final doc = await divisionRef.get();
 
-    final oldLeaderId = doc.data()?['leaderId'];
+    final oldHeadId = doc.data()?['headId'];
 
     final batch = _db.batch();
 
     // 🔥 turunkan leader lama
-    if (oldLeaderId != '' && oldLeaderId != memberId) {
-      final oldLeaderRef = _db.collection('members').doc(oldLeaderId);
+    if (oldHeadId != '' && oldHeadId != memberId) {
+      final oldLeaderRef = _db.collection('members').doc(oldHeadId);
 
       batch.update(oldLeaderRef, {'role': 'Anggota'});
     }
 
     // 🔥 set leader baru
-    batch.update(divisionRef, {'leaderId': memberId});
+    batch.update(divisionRef, {'headId': memberId});
 
     final newLeaderRef = _db.collection('members').doc(memberId);
 
-    batch.update(newLeaderRef, {'role': 'Ketua'});
+    batch.update(newLeaderRef, {'role': 'Kepala Divisi'});
 
     await batch.commit();
   }
 
-  Future<void> assignViceLeader({
+  Future<void> assignViceHead({
     required String divisionId,
     required String memberId,
   }) async {
@@ -131,7 +140,7 @@ Future<void> updateOrganization(Map<String, dynamic> data) async {
 
     final doc = await divisionRef.get();
 
-    final oldViceId = doc.data()?['viceLeaderId'];
+    final oldViceId = doc.data()?['viceHeadId'];
 
     final batch = _db.batch();
 
@@ -143,20 +152,20 @@ Future<void> updateOrganization(Map<String, dynamic> data) async {
     }
 
     // 🔥 set wakil baru
-    batch.update(divisionRef, {'viceLeaderId': memberId});
+    batch.update(divisionRef, {'viceHeadId': memberId});
 
     final newViceRef = _db.collection('members').doc(memberId);
 
-    batch.update(newViceRef, {'role': 'Wakil'});
+    batch.update(newViceRef, {'role': 'Wakil Kepala Divisi'});
 
     await batch.commit();
   }
 
-  Future<void> removeLeader(String divisionId) async {
+  Future<void> removeHead(String divisionId) async {
     final divisionRef = _db.collection('divisions').doc(divisionId);
 
     final doc = await divisionRef.get();
-    final leaderId = doc.data()?['leaderId'];
+    final leaderId = doc.data()?['headId'];
 
     final batch = _db.batch();
 
@@ -166,16 +175,16 @@ Future<void> updateOrganization(Map<String, dynamic> data) async {
       batch.update(memberRef, {'role': 'Anggota'});
     }
 
-    batch.update(divisionRef, {'leaderId': ''});
+    batch.update(divisionRef, {'headId': ''});
 
     await batch.commit();
   }
 
-  Future<void> removeViceLeader(String divisionId) async {
+  Future<void> removeViceHead(String divisionId) async {
     final divisionRef = _db.collection('divisions').doc(divisionId);
 
     final doc = await divisionRef.get();
-    final viceId = doc.data()?['viceLeaderId'];
+    final viceId = doc.data()?['viceHeadId'];
 
     final batch = _db.batch();
 
@@ -185,10 +194,140 @@ Future<void> updateOrganization(Map<String, dynamic> data) async {
       batch.update(memberRef, {'role': 'Anggota'});
     }
 
-    batch.update(divisionRef, {'viceLeaderId': ''});
+    batch.update(divisionRef, {'viceHeadId': ''});
 
     await batch.commit();
   }
+
+ Future<void> assignGeneralLeader({
+  required String memberId,
+}) async {
+  final orgRef = _db.collection('organization').doc('main');
+  final membersRef = _db.collection('members');
+
+  final doc = await orgRef.get();
+  final oldLeaderId = doc.data()?['leaderId'];
+
+  final batch = _db.batch();
+
+  // 🔥 reset leader lama
+  if (oldLeaderId != null && oldLeaderId != '') {
+    final oldRef = membersRef.doc(oldLeaderId);
+    batch.update(oldRef, {'globalRole': ''});
+  }
+
+  // 🔥 set leader baru
+  final newRef = membersRef.doc(memberId);
+  batch.update(newRef, {'globalRole': 'Ketua Umum'});
+
+  batch.update(orgRef, {'leaderId': memberId});
+
+  await batch.commit();
+}
+
+  Future<void> assignGeneralViceLeader({
+  required String memberId,
+}) async {
+  final orgRef = _db.collection('organization').doc('main');
+  final membersRef = _db.collection('members');
+
+  final doc = await orgRef.get();
+  final oldId = doc.data()?['viceLeaderId'];
+
+  final batch = _db.batch();
+
+  if (oldId != null && oldId != '') {
+    batch.update(membersRef.doc(oldId), {'globalRole': ''});
+  }
+
+  batch.update(membersRef.doc(memberId), {
+    'globalRole': 'Wakil Ketua Umum',
+  });
+
+  batch.update(orgRef, {'viceLeaderId': memberId});
+
+  await batch.commit();
+}
+
+ Future<void> removeGeneralLeader() async {
+  final orgRef = _db.collection('organization').doc('main');
+
+  final doc = await orgRef.get();
+  final leaderId = doc.data()?['leaderId'];
+
+  final batch = _db.batch();
+
+  if (leaderId != null && leaderId != '') {
+    final memberRef = _db.collection('members').doc(leaderId);
+
+    // 🔥 reset globalRole di member
+    batch.update(memberRef, {'globalRole': 'General'});
+  }
+
+  // 🔥 reset di organization
+  batch.update(orgRef, {'leaderId': ''});
+
+  await batch.commit();
+}
+
+ Future<void> removeGeneralViceLeader() async {
+  final orgRef = _db.collection('organization').doc('main');
+
+  final doc = await orgRef.get();
+  final viceId = doc.data()?['viceLeaderId'];
+
+  final batch = _db.batch();
+
+  if (viceId != null && viceId != '') {
+    final memberRef = _db.collection('members').doc(viceId);
+
+    batch.update(memberRef, {'globalRole': 'General'});
+  }
+
+  batch.update(orgRef, {'viceLeaderId': ''});
+
+  await batch.commit();
+}
+
+Future<void> syncOrganizationRoles() async {
+  final orgRef = _db.collection('organization').doc('main');
+  final membersRef = _db.collection('members');
+
+  final orgDoc = await orgRef.get();
+  final leaderId = orgDoc.data()?['leaderId'];
+  final viceId = orgDoc.data()?['viceLeaderId'];
+
+  final members = await membersRef.get();
+
+  final batch = _db.batch();
+
+  for (var m in members.docs) {
+    final id = m.id;
+    final role = m['globalRole'] ?? 'General';
+
+    // 🔥 FIX Ketua Umum
+    if (id == leaderId) {
+      if (role != 'Ketua Umum') {
+        batch.update(m.reference, {'globalRole': 'Ketua Umum'});
+      }
+    } else if (role == 'Ketua Umum') {
+      batch.update(m.reference, {'globalRole': 'General'});
+    }
+
+    // 🔥 FIX Wakil
+    if (id == viceId) {
+      if (role != 'Wakil Ketua Umum') {
+        batch.update(m.reference, {
+          'globalRole': 'Wakil Ketua Umum',
+        });
+      }
+    } else if (role == 'Wakil Ketua Umum') {
+      batch.update(m.reference, {'globalRole': 'General'});
+    }
+  }
+
+  await batch.commit();
+}
 
   Future<void> deleteDivision(String divisionId) async {
     final db = FirebaseFirestore.instance;
@@ -221,8 +360,8 @@ Future<void> updateOrganization(Map<String, dynamic> data) async {
   Future<void> addDivision(String name, String desc) async {
     await _db.collection('divisions').add({
       'name': name,
-      'leaderId': '',
-      'viceLeaderId': '',
+      'headId': '',
+      'viceHeadId': '',
       'createdAt': FieldValue.serverTimestamp(),
       'description': desc,
     });
@@ -309,6 +448,13 @@ Future<void> updateOrganization(Map<String, dynamic> data) async {
     final doc = await _db.collection('users').doc(uid).get();
 
     return doc['role'];
+  }
+
+  Future<String> getCurrentGlobalRole() async {
+    final uid = FirebaseAuth.instance.currentUser!.uid;
+
+    final doc = await _db.collection('members').doc(uid).get();
+    return doc['globalRole'];
   }
 
   Future<void> updateMemberPartial(

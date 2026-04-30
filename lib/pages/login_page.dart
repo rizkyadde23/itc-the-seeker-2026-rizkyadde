@@ -141,6 +141,7 @@ class _LoginPageState extends State<LoginPage> {
             isLoading = false;
           });
           if (role == 'admin') {
+            await FirestoreService().syncOrganizationRoles();
             Get.snackbar("Login Berhasil", "Selamat Datang Di ITC Directory");
             Get.offAllNamed(AppRoutes.admin);
           } else {

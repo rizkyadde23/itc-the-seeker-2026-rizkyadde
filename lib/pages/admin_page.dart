@@ -14,8 +14,10 @@ class AdminPage extends StatefulWidget {
 }
 
 class _AdminPageState extends State<AdminPage> {
+  FirestoreService service = FirestoreService();
   Future<Map<String, int>> getStats() async {
     try {
+      await FirestoreService().syncOrganizationRoles();
       final members = await FirebaseFirestore.instance
           .collection('members')
           .get();
@@ -261,7 +263,9 @@ class _AdminPageState extends State<AdminPage> {
     return StreamBuilder<QuerySnapshot>(
       stream: FirestoreService().getDivisions(),
       builder: (context, snapshot) {
-        if (!snapshot.hasData) return CircularProgressIndicator();
+        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+          return const Center(child: Text("Belum ada divisi"));
+        }
 
         final divisions = snapshot.data!.docs;
 
@@ -377,6 +381,262 @@ class _AdminPageState extends State<AdminPage> {
     );
   }
 
+  Widget buildOrganizationControl() {
+    return Card(
+      elevation: 5,
+      shadowColor: Colors.black,
+      color: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: StreamBuilder<DocumentSnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('organization')
+              .doc('main')
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            final data = snapshot.data!.data() as Map<String, dynamic>;
+
+            final leaderId = data['leaderId'] ?? '';
+            final viceLeaderId = data['viceLeaderId'] ?? '';
+
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Organization Leadership",
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                ),
+
+                const SizedBox(height: 15),
+
+                // 🔥 KETUA UMUM
+                _buildLeaderTile(
+                  title: "Ketua Umum",
+                  memberId: leaderId,
+                  onAssign: () => showAssignDialog(isLeader: true),
+                  onRemove: leaderId != ''
+                      ? () {
+                          showDeleteLeaderDialog();
+                        }
+                      : null,
+                ),
+
+                const SizedBox(height: 10),
+
+                // 🔥 WAKIL
+                _buildLeaderTile(
+                  title: "Wakil Ketua Umum",
+                  memberId: viceLeaderId,
+                  onAssign: () => showAssignDialog(isLeader: false),
+                  onRemove: viceLeaderId != ''
+                      ? () {
+                          showDeleteViceLeaderDialog();
+                        }
+                      : null,
+                ),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<dynamic> showDeleteLeaderDialog() {
+    return Get.defaultDialog(
+      title: "Hapus Leader",
+      middleText: "Apakah Kamu Yakin?",
+      buttonColor: Colors.red,
+      cancel: MaterialButton(
+        elevation: 5,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        color: Colors.white,
+        onPressed: () => Get.back(),
+        child: Text("Cancel", style: TextStyle(color: Colors.black)),
+      ),
+      confirm: MaterialButton(
+        elevation: 5,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        color: const Color.fromARGB(255, 255, 0, 0),
+        onPressed: () async {
+          try {
+            await service.removeGeneralLeader();
+            Get.back();
+            Get.snackbar("Success", "Ketua Umum dihapus");
+          } catch (e) {
+            Get.snackbar("Error", e.toString());
+          }
+        },
+        child: Text("Hapus", style: TextStyle(color: Colors.black)),
+      ),
+    );
+  }
+
+  Future<dynamic> showDeleteViceLeaderDialog() {
+    return Get.defaultDialog(
+      title: "Hapus Leader",
+      middleText: "Apakah Kamu Yakin?",
+      buttonColor: Colors.red,
+      cancel: MaterialButton(
+        elevation: 5,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        color: Colors.white,
+        onPressed: () => Get.back(),
+        child: Text("Cancel", style: TextStyle(color: Colors.black)),
+      ),
+      confirm: MaterialButton(
+        elevation: 5,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        color: const Color.fromARGB(255, 255, 0, 0),
+        onPressed: () async {
+          try {
+            await service.removeGeneralViceLeader();
+            Get.back();
+            Get.snackbar("Success", "Wakil Ketua Umum dihapus");
+          } catch (e) {
+            Get.snackbar("Error", e.toString());
+          }
+        },
+        child: Text("Hapus", style: TextStyle(color: Colors.black)),
+      ),
+    );
+  }
+
+  Widget _buildLeaderTile({
+    required String title,
+    required String memberId,
+    required VoidCallback onAssign,
+    VoidCallback? onRemove,
+  }) {
+    if (memberId == '') {
+      return ListTile(
+        leading: const Icon(Icons.star),
+        title: Text(title),
+        subtitle: const Text("Belum ada"),
+        trailing: IconButton(icon: const Icon(Icons.edit), onPressed: onAssign),
+      );
+    }
+
+    return StreamBuilder<DocumentSnapshot>(
+      stream: FirebaseFirestore.instance
+          .collection('members')
+          .doc(memberId)
+          .snapshots(),
+      builder: (context, snapshot) {
+        String name = "Belum ada";
+
+        if (snapshot.hasData && snapshot.data!.exists) {
+          name = snapshot.data!['name'];
+        }
+
+        return ListTile(
+          leading: const Icon(Icons.star),
+          title: Text(title),
+          subtitle: Text(name),
+          trailing: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(icon: const Icon(Icons.edit), onPressed: onAssign),
+              if (onRemove != null)
+                IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: onRemove,
+                ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void showAssignDialog({required bool isLeader}) {
+    Get.dialog(
+      Dialog(
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          height: 400,
+          child: Column(
+            children: [
+              Text(
+                isLeader ? "Pilih Ketua Umum" : "Pilih Wakil Ketua",
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 10),
+
+              Expanded(
+                child: StreamBuilder<QuerySnapshot>(
+                  stream: FirebaseFirestore.instance
+                      .collection('members')
+                      .snapshots(),
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const CircularProgressIndicator();
+                    }
+
+                    final members = snapshot.data!.docs;
+
+                    return ListView(
+                      children: members.map((m) {
+                        return ListTile(
+                          title: Text(m['name']),
+                          subtitle: Text(m['role']),
+                          onTap: () {
+                            showAssignLeaderDialog(isLeader: isLeader, m: m);
+                          },
+                        );
+                      }).toList(),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void showAssignLeaderDialog({
+    required bool isLeader,
+    required QueryDocumentSnapshot m,
+  }) {
+    Get.defaultDialog(
+      title: "Assign Leader",
+      middleText: "Apakah Kamu Yakin?",
+      cancel: MaterialButton(
+        elevation: 5,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        color: Colors.white,
+        onPressed: () => Get.back(),
+        child: Text("Cancel", style: TextStyle(color: Colors.black)),
+      ),
+      confirm: MaterialButton(
+        elevation: 5,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        color: const Color.fromARGB(255, 64, 255, 0),
+        onPressed: () async {
+          if (isLeader) {
+            await service.assignGeneralLeader(memberId: m.id);
+          } else {
+            await service.assignGeneralViceLeader(memberId: m.id);
+          }
+
+          Get.back();
+          Get.snackbar("Success", "Berhasil diassign");
+        },
+        child: Text("Assign", style: TextStyle(color: Colors.black)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -454,6 +714,15 @@ class _AdminPageState extends State<AdminPage> {
 
             buildDivisionList(),
 
+            const SizedBox(height: 10),
+            Text(
+              "Leaders",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+
+            // 🔥 MEMBER LIST
+            buildOrganizationControl(),
             const SizedBox(height: 10),
             Text(
               "Members",

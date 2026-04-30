@@ -8,7 +8,7 @@ class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
 
   @override
-  State<EditProfilePage> createState() => _EditProfilePageState();
+ State<EditProfilePage> createState() => _EditProfilePageState();
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
@@ -25,6 +25,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
   String? selectedDivisionId;
   String selectedRole = "Anggota";
+  String selectedGeneralRole = "General";
   String selectedStatus = "Active";
 
   bool isAdmin = false;
@@ -44,17 +45,30 @@ class _EditProfilePageState extends State<EditProfilePage> {
     instagramController = TextEditingController(text: member.instagram);
     bioController = TextEditingController(text: member.bio);
 
-    selectedDivisionId = member.divisionId.isNotEmpty
-        ? member.divisionId
-        : null;
+    selectedDivisionId =
+        member.divisionId.isNotEmpty ? member.divisionId : '';
 
-    selectedRole = ["Anggota", "Ketua", "Wakil"].contains(member.role)
+    selectedRole = [
+      "Anggota",
+      "Kepala Divisi",
+      "Wakil Kepala Divisi",
+    ].contains(member.role)
         ? member.role
         : "Anggota";
 
-    selectedStatus = ["Active", "inactive"].contains(member.status)
+    selectedGeneralRole = [
+      "General",
+      "Ketua Umum",
+      "Wakil Ketua Umum",
+    ].contains(member.globalRole)
+        ? member.globalRole
+        : "General";
+
+    selectedStatus = ["Active", "Inactive"].contains(member.status)
         ? member.status
         : "Active";
+
+    isActive = selectedStatus == "Active";
 
     checkAdmin();
   }
@@ -70,13 +84,13 @@ class _EditProfilePageState extends State<EditProfilePage> {
   Widget build(BuildContext context) {
     deviceHeight = MediaQuery.of(context).size.height;
     deviceWidth = MediaQuery.of(context).size.width;
+
     return Scaffold(
       appBar: AppBar(title: const Text("Edit Profile")),
       body: Stack(
         children: [
           mainUI(),
-          if (isLoading)
-            Center(child: loadingWidget()),
+          if (isLoading) Center(child: loadingWidget()),
         ],
       ),
     );
@@ -93,20 +107,17 @@ class _EditProfilePageState extends State<EditProfilePage> {
           BoxShadow(color: Colors.black, blurRadius: 5, spreadRadius: 1),
         ],
       ),
-      child: CircularProgressIndicator(
-        color: const Color.fromARGB(255, 41, 117, 248),
-      ),
+      child: const CircularProgressIndicator(),
     );
   }
 
   Padding mainUI() {
     return Padding(
-      padding: EdgeInsets.symmetric(horizontal: deviceWidth!*0.05),
+      padding: EdgeInsets.symmetric(horizontal: deviceWidth! * 0.05),
       child: Form(
         key: _formKey,
         child: ListView(
           children: [
-            // 🔥 NAME
             TextFormField(
               controller: nameController,
               decoration: const InputDecoration(labelText: "Nama"),
@@ -115,7 +126,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
             const SizedBox(height: 10),
 
-            // 🔥 PHONE
             TextFormField(
               controller: phoneController,
               decoration: const InputDecoration(labelText: "Phone"),
@@ -123,7 +133,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
             const SizedBox(height: 10),
 
-            // 🔥 INSTAGRAM
             TextFormField(
               controller: instagramController,
               decoration: const InputDecoration(labelText: "Instagram"),
@@ -131,7 +140,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
             const SizedBox(height: 10),
 
-            // 🔥 BIO
             TextFormField(
               controller: bioController,
               decoration: const InputDecoration(labelText: "Bio"),
@@ -140,18 +148,18 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
             const SizedBox(height: 20),
 
+            // STATUS
             if (isAdmin)
               DropdownButtonFormField<String>(
-                initialValue: ["Active", "Inactive"].contains(selectedStatus)
-                    ? selectedStatus
-                    : "Active",
+                initialValue: selectedStatus,
                 items: ["Active", "Inactive"]
-                    .map((r) => DropdownMenuItem(value: r, child: Text(r)))
+                    .map((r) =>
+                        DropdownMenuItem(value: r, child: Text(r)))
                     .toList(),
                 onChanged: (value) {
                   setState(() {
                     selectedStatus = value!;
-                    isActive = selectedStatus == "Active" ? true : false;
+                    isActive = value == "Active";
                   });
                 },
                 decoration: const InputDecoration(labelText: "Status"),
@@ -159,7 +167,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
             const SizedBox(height: 20),
 
-            // 🔥 DIVISION (ADMIN ONLY)
+            // DIVISION
             if (isAdmin && isActive)
               StreamBuilder(
                 stream: service.getDivisions(),
@@ -171,11 +179,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   final divisions = snapshot.data!.docs;
 
                   return DropdownButtonFormField<String>(
-                    initialValue:
-                        divisions.any((d) => d.id == selectedDivisionId)
+                    initialValue: divisions.any(
+                            (d) => d.id == selectedDivisionId)
                         ? selectedDivisionId
-                        : null,
-                    hint: const Text("Pilih Divisi"),
+                        : '',
                     items: divisions.map<DropdownMenuItem<String>>((d) {
                       return DropdownMenuItem(
                         value: d.id,
@@ -185,30 +192,31 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     onChanged: (value) {
                       setState(() {
                         selectedDivisionId = value;
-
-                        // 🔥 reset role kalau division berubah
                         selectedRole = "Anggota";
                       });
                     },
-                    decoration: const InputDecoration(labelText: "Division"),
+                    decoration:
+                        const InputDecoration(labelText: "Division"),
                   );
                 },
               ),
 
             const SizedBox(height: 20),
 
-            // 🔥 ROLE (ADMIN ONLY)
+            // DIVISION ROLE
             if (isAdmin && isActive)
               DropdownButtonFormField<String>(
-                initialValue:
-                    ["Anggota", "Ketua", "Wakil"].contains(selectedRole)
-                    ? selectedRole
-                    : "Anggota",
-                items: ["Anggota", "Ketua", "Wakil"]
-                    .map((r) => DropdownMenuItem(value: r, child: Text(r)))
+                initialValue: selectedRole,
+                items: [
+                  "Anggota",
+                  "Kepala Divisi",
+                  "Wakil Kepala Divisi"
+                ]
+                    .map((r) =>
+                        DropdownMenuItem(value: r, child: Text(r)))
                     .toList(),
-                onChanged: selectedDivisionId == null
-                    ? null // 🔥 disable kalau belum pilih divisi
+                onChanged: selectedDivisionId == ''
+                    ? null
                     : (value) {
                         setState(() {
                           selectedRole = value!;
@@ -219,7 +227,25 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
             const SizedBox(height: 30),
 
-            // 🔥 SAVE BUTTON
+            // GENERAL ROLE
+            if (isAdmin && isActive)
+              DropdownButtonFormField<String>(
+                initialValue: selectedGeneralRole,
+                items: ["General", "Ketua Umum", "Wakil Ketua Umum"]
+                    .map((r) =>
+                        DropdownMenuItem(value: r, child: Text(r)))
+                    .toList(),
+                onChanged: (value) {
+                  setState(() {
+                    selectedGeneralRole = value!;
+                  });
+                },
+                decoration:
+                    const InputDecoration(labelText: "General Role"),
+              ),
+
+            const SizedBox(height: 30),
+
             MaterialButton(
               color: Colors.green,
               shape: RoundedRectangleBorder(
@@ -248,14 +274,6 @@ class _EditProfilePageState extends State<EditProfilePage> {
     setState(() => isLoading = true);
 
     try {
-      // 🔥 VALIDASI ROLE KHUSUS
-      if (isAdmin && (selectedRole == "Ketua" || selectedRole == "Wakil")) {
-        if (selectedDivisionId == null || selectedDivisionId!.isEmpty) {
-          Get.snackbar("Error", "Divisi wajib dipilih");
-          return;
-        }
-      }
-
       Map<String, dynamic> updateData = {
         'name': nameController.text,
         'phone': phoneController.text,
@@ -263,70 +281,87 @@ class _EditProfilePageState extends State<EditProfilePage> {
         'bio': bioController.text,
       };
 
-      // 🔥 HANDLE STATUS INACTIVE
+      // 🔥 HANDLE INACTIVE
       if (selectedStatus == "Inactive") {
-        final oldDivisionId = member.divisionId;
-        final oldRole = member.role;
-
-        // 🔥 kalau dia Ketua → remove dari division
-        if (oldRole == "Ketua" && oldDivisionId.isNotEmpty) {
-          await service.removeLeader(oldDivisionId);
+        if (member.role == "Kepala Divisi") {
+          await service.removeHead(member.divisionId);
         }
 
-        // 🔥 kalau dia Wakil → remove juga
-        if (oldRole == "Wakil" && oldDivisionId.isNotEmpty) {
-          await service.removeViceLeader(oldDivisionId);
+        if (member.role == "Wakil Kepala Divisi") {
+          await service.removeViceHead(member.divisionId);
         }
 
-        // 🔥 reset data
-        updateData['divisionId'] = null;
+        if (member.globalRole == "Ketua Umum") {
+          await service.removeGeneralLeader();
+        }
+
+        if (member.globalRole == "Wakil Ketua Umum") {
+          await service.removeGeneralViceLeader();
+        }
+
+        updateData['divisionId'] = '';
         updateData['role'] = 'Anggota';
-        await service.deactivateMember(member);
+
+        await service.updateMemberPartial(member.id, updateData);
+        return;
       }
 
-      // 🔥 hanya kirim division kalau valid
-      if (selectedDivisionId != null && selectedDivisionId!.isNotEmpty) {
+      // 🔥 DIVISION
+      if (selectedDivisionId != '' && selectedDivisionId != null) {
         updateData['divisionId'] = selectedDivisionId;
       }
 
-      // 🔥 ROLE LOGIC (ADMIN ONLY)
-      // 🔥 HANDLE ROLE CHANGE
-      if (isAdmin && selectedDivisionId != null) {
-        final oldDivisionId = member.divisionId;
-        final oldRole = member.role;
-
-        // 🔥 kalau sebelumnya Ketua → remove
-        if (oldRole == "Ketua" &&
-            oldDivisionId.isNotEmpty &&
-            selectedRole != "Ketua") {
-          await service.removeLeader(oldDivisionId);
+      // 🔥 HANDLE DIVISION ROLE
+      if (isAdmin && selectedDivisionId != '') {
+        if (member.role == "Kepala Divisi" &&
+            selectedRole != "Kepala Divisi") {
+          await service.removeHead(member.divisionId);
         }
 
-        // 🔥 kalau sebelumnya Wakil → remove
-        if (oldRole == "Wakil" &&
-            oldDivisionId.isNotEmpty &&
-            selectedRole != "Wakil") {
-          await service.removeViceLeader(oldDivisionId);
+        if (member.role == "Wakil Kepala Divisi" &&
+            selectedRole != "Wakil Kepala Divisi") {
+          await service.removeViceHead(member.divisionId);
         }
 
-        // 🔥 assign role baru
-        if (selectedRole == "Ketua") {
-          await service.assignLeader(
+        if (selectedRole == "Kepala Divisi") {
+          await service.assignHead(
             divisionId: selectedDivisionId!,
             memberId: member.id,
           );
-        } else if (selectedRole == "Wakil") {
-          await service.assignViceLeader(
+        } else if (selectedRole == "Wakil Kepala Divisi") {
+          await service.assignViceHead(
             divisionId: selectedDivisionId!,
             memberId: member.id,
           );
         }
       }
 
+      // 🔥 HANDLE GENERAL ROLE (SOURCE OF TRUTH = ORGANIZATION)
+      if (isAdmin) {
+        if (member.globalRole == "Ketua Umum" &&
+            selectedGeneralRole != "Ketua Umum") {
+          await service.removeGeneralLeader();
+        }
+
+        if (member.globalRole == "Wakil Ketua Umum" &&
+            selectedGeneralRole != "Wakil Ketua Umum") {
+          await service.removeGeneralViceLeader();
+        }
+
+        if (selectedGeneralRole == "Ketua Umum") {
+          await service.assignGeneralLeader(memberId: member.id);
+        } else if (selectedGeneralRole == "Wakil Ketua Umum") {
+          await service.assignGeneralViceLeader(memberId: member.id);
+        }
+      }
+
+      // 🔥 UPDATE BASIC DATA ONLY
       await service.updateMemberPartial(member.id, updateData);
 
+      // 🔥 FINAL SYNC
+      await service.syncOrganizationRoles();
+
       Get.snackbar("Success", "Profile updated");
-      await Future.delayed(Duration(seconds: 1));
     } catch (e) {
       Get.snackbar("Error", e.toString());
     } finally {

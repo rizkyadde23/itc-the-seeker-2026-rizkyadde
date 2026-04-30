@@ -2,6 +2,7 @@ class Member {
   final String id;
   final String name;
   final String role;
+  final String globalRole;
   final String divisionId;
   final String status;
   final String photoUrl;
@@ -16,6 +17,7 @@ class Member {
     required this.id,
     required this.name,
     required this.role,
+    required this.globalRole,
     required this.divisionId,
     required this.status,
     required this.photoUrl,
@@ -31,6 +33,7 @@ class Member {
       id: id,
       name: data['name'] ?? '',
       role: data['role'] ?? '',
+      globalRole: data['globalRole'] ?? '',
       divisionId: data['divisionId'] ?? '',
       status: data['status'] ?? '',
       photoUrl: data['photoUrl'] ?? '',
@@ -46,6 +49,7 @@ class Member {
     return {
       'name': name,
       'role': role,
+      'globalRole': globalRole,
       'divisionId': divisionId,
       'status': status,
       'photoUrl': photoUrl,

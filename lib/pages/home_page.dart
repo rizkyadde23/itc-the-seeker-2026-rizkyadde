@@ -8,10 +8,19 @@ import 'package:seeker/pages/structure_page.dart';
 import 'package:seeker/routes/app_routes.dart';
 import 'package:seeker/services/firestore_service.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
   final controller = Get.put(HomeController());
+  bool isLeader = false;
+
   double? deviceWidth, deviceHeight;
+
   final FirestoreService service = FirestoreService();
 
   @override
@@ -83,6 +92,14 @@ class HomePage extends StatelessWidget {
     );
   }
 
+  Future<void> checkGeneralLeader() async {
+    final generalRole = await service.getCurrentGlobalRole();
+    setState(() {
+      isLeader =
+          (generalRole == "Ketua Umum" || generalRole == "Wakil Ketua Umum");
+    });
+  }
+
   Widget HomeTab(BuildContext context) {
     deviceHeight = MediaQuery.of(context).size.height;
     deviceWidth = MediaQuery.of(context).size.width;
@@ -133,6 +150,7 @@ class HomePage extends StatelessWidget {
                       ),
                       SizedBox(height: 8),
                       Text(org['vision']),
+                      SizedBox(height: 8),
                       Text(
                         "Misi",
                         style: TextStyle(
@@ -140,7 +158,18 @@ class HomePage extends StatelessWidget {
                           fontWeight: FontWeight.bold,
                         ),
                       ),
+                      SizedBox(height: 8),
+
                       Text(org['mission']),
+                      SizedBox(height: 8),
+                      if (isLeader)
+                        MaterialButton(
+                          color: Colors.green,
+                          onPressed: () {
+                            Get.toNamed(AppRoutes.editOrganization);
+                          },
+                          child: Text("Edit Organisasi"),
+                        ),
                     ],
                   );
                 },

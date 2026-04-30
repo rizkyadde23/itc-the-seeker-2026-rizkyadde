@@ -180,6 +180,7 @@ class _RegisterPageState extends State<RegisterPage> {
             id: '',
             name: nameController.text,
             role: "Anggota",
+            globalRole: "General",
             divisionId: "",
             status: "Active",
             photoUrl: "",
