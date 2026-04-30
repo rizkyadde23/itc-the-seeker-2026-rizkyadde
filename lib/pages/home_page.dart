@@ -124,15 +124,17 @@ class _HomePageState extends State<HomePage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     /// 🔥 ORG INFO
-                    Text(
-                      org['name'],
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
+                    Center(
+                      child: Text(
+                        org['name'],
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(org['description']),
+                    Text(org['description'], textAlign: TextAlign.justify),
                     const SizedBox(height: 8),
 
                     const Text(
@@ -143,7 +145,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(org['vision']),
+                    Text(org['vision'], textAlign: TextAlign.justify),
 
                     const SizedBox(height: 8),
                     const Text(
@@ -154,7 +156,7 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    Text(org['mission']),
+                    Text(org['mission'], textAlign: TextAlign.justify),
 
                     const SizedBox(height: 8),
 
@@ -225,7 +227,10 @@ class _HomePageState extends State<HomePage> {
                 final favorites = List<String>.from(data['favorites'] ?? []);
 
                 if (favorites.isEmpty) {
-                  return const Text("Belum ada favorit");
+                  return Container(
+                    margin: EdgeInsets.only(bottom: deviceHeight! * 0.1),
+                    child: Center(child: const Text("Belum ada favorit")),
+                  );
                 }
 
                 return Column(
@@ -241,6 +246,10 @@ class _HomePageState extends State<HomePage> {
                         final m = snap.data!;
 
                         return Card(
+                          margin: EdgeInsets.only(bottom: 10),
+                          elevation: 5,
+                          shadowColor: Colors.black,
+                          color: Colors.white,
                           child: ListTile(
                             title: Text(m['name']),
                             trailing: const Icon(
