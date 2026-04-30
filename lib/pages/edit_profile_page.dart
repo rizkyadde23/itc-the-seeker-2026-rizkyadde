@@ -8,7 +8,7 @@ class EditProfilePage extends StatefulWidget {
   const EditProfilePage({super.key});
 
   @override
- State<EditProfilePage> createState() => _EditProfilePageState();
+  State<EditProfilePage> createState() => _EditProfilePageState();
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
@@ -45,22 +45,23 @@ class _EditProfilePageState extends State<EditProfilePage> {
     instagramController = TextEditingController(text: member.instagram);
     bioController = TextEditingController(text: member.bio);
 
-    selectedDivisionId =
-        member.divisionId.isNotEmpty ? member.divisionId : '';
+    selectedDivisionId = member.divisionId.isNotEmpty ? member.divisionId : '';
 
-    selectedRole = [
-      "Anggota",
-      "Kepala Divisi",
-      "Wakil Kepala Divisi",
-    ].contains(member.role)
+    selectedRole =
+        [
+          "Anggota",
+          "Kepala Divisi",
+          "Wakil Kepala Divisi",
+        ].contains(member.role)
         ? member.role
         : "Anggota";
 
-    selectedGeneralRole = [
-      "General",
-      "Ketua Umum",
-      "Wakil Ketua Umum",
-    ].contains(member.globalRole)
+    selectedGeneralRole =
+        [
+          "General",
+          "Ketua Umum",
+          "Wakil Ketua Umum",
+        ].contains(member.globalRole)
         ? member.globalRole
         : "General";
 
@@ -153,8 +154,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               DropdownButtonFormField<String>(
                 initialValue: selectedStatus,
                 items: ["Active", "Inactive"]
-                    .map((r) =>
-                        DropdownMenuItem(value: r, child: Text(r)))
+                    .map((r) => DropdownMenuItem(value: r, child: Text(r)))
                     .toList(),
                 onChanged: (value) {
                   setState(() {
@@ -179,10 +179,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   final divisions = snapshot.data!.docs;
 
                   return DropdownButtonFormField<String>(
-                    initialValue: divisions.any(
-                            (d) => d.id == selectedDivisionId)
+                    initialValue: divisions.any((d) => d.id == selectedDivisionId)
                         ? selectedDivisionId
-                        : '',
+                        : null,
+                    hint: const Text("Pilih Divisi"),
                     items: divisions.map<DropdownMenuItem<String>>((d) {
                       return DropdownMenuItem(
                         value: d.id,
@@ -195,8 +195,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                         selectedRole = "Anggota";
                       });
                     },
-                    decoration:
-                        const InputDecoration(labelText: "Division"),
+                    decoration: const InputDecoration(labelText: "Division"),
                   );
                 },
               ),
@@ -207,13 +206,8 @@ class _EditProfilePageState extends State<EditProfilePage> {
             if (isAdmin && isActive)
               DropdownButtonFormField<String>(
                 initialValue: selectedRole,
-                items: [
-                  "Anggota",
-                  "Kepala Divisi",
-                  "Wakil Kepala Divisi"
-                ]
-                    .map((r) =>
-                        DropdownMenuItem(value: r, child: Text(r)))
+                items: ["Anggota", "Kepala Divisi", "Wakil Kepala Divisi"]
+                    .map((r) => DropdownMenuItem(value: r, child: Text(r)))
                     .toList(),
                 onChanged: selectedDivisionId == ''
                     ? null
@@ -232,16 +226,14 @@ class _EditProfilePageState extends State<EditProfilePage> {
               DropdownButtonFormField<String>(
                 initialValue: selectedGeneralRole,
                 items: ["General", "Ketua Umum", "Wakil Ketua Umum"]
-                    .map((r) =>
-                        DropdownMenuItem(value: r, child: Text(r)))
+                    .map((r) => DropdownMenuItem(value: r, child: Text(r)))
                     .toList(),
                 onChanged: (value) {
                   setState(() {
                     selectedGeneralRole = value!;
                   });
                 },
-                decoration:
-                    const InputDecoration(labelText: "General Role"),
+                decoration: const InputDecoration(labelText: "General Role"),
               ),
 
             const SizedBox(height: 30),
@@ -313,8 +305,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
       // 🔥 HANDLE DIVISION ROLE
       if (isAdmin && selectedDivisionId != '') {
-        if (member.role == "Kepala Divisi" &&
-            selectedRole != "Kepala Divisi") {
+        if (member.role == "Kepala Divisi" && selectedRole != "Kepala Divisi") {
           await service.removeHead(member.divisionId);
         }
 

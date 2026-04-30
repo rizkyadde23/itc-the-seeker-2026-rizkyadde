@@ -281,7 +281,7 @@ class _AdminPageState extends State<AdminPage> {
                   leading: Icon(Icons.apartment),
                   title: Text(d['name']),
                   subtitle: Text(
-                    d['leaderId'] != "" ? "Leader assigned" : "Belum ada ketua",
+                    d['headId'] != "" ? "Leader assigned" : "Belum ada ketua",
                   ),
 
                   // 🔥 ACTION BUTTONS

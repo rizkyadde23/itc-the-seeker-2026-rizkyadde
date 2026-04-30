@@ -109,8 +109,8 @@ class DivisionCardOptimized extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final leaderId = division['leaderId'];
-    final viceLeaderId = division['viceLeaderId'];
+    final headId = division['headId'];
+    final viceHeadId = division['viceHeadId'];
 
     return GestureDetector(
       onTap: () {
@@ -140,13 +140,13 @@ class DivisionCardOptimized extends StatelessWidget {
 
               // 🔥 LEADER
               Text(
-                leaderId != ''
+                headId != ''
                     ? "Kepala Divisi: ${_getLeaderName()}"
                     : "Belum Ada Kepala Divisi",
               ),
 
               Text(
-                viceLeaderId != ''
+                viceHeadId != ''
                     ? "Wakil Kepala Divisi: ${_getViceLeaderName()}"
                     : "Belum Ada Wakil",
               ),
@@ -161,7 +161,7 @@ class DivisionCardOptimized extends StatelessWidget {
               else
                 Column(
                   children: members.map((m) {
-                    final isLeader = m.id == leaderId;
+                    final isLeader = m.id == headId || m.id == viceHeadId;
                     final isFav = favorites.contains(m.id);
 
                     return ListTile(
@@ -212,8 +212,8 @@ class DivisionCardOptimized extends StatelessWidget {
 
   String _getLeaderName() {
     try {
-      final leader = members.firstWhere((m) => m.id == division['leaderId']);
-      return leader['name'];
+      final head = members.firstWhere((m) => m.id == division['headId']);
+      return head['name'];
     } catch (e) {
       return "Belum ada";
     }
@@ -221,7 +221,7 @@ class DivisionCardOptimized extends StatelessWidget {
 
   String _getViceLeaderName() {
     try {
-      final vice = members.firstWhere((m) => m.id == division['viceLeaderId']);
+      final vice = members.firstWhere((m) => m.id == division['viceHeadId']);
       return vice['name'];
     } catch (e) {
       return "Belum ada";
