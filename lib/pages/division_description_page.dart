@@ -79,7 +79,7 @@ class DivisionPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 8),
-              Text(data['description']),
+              Text(data['description'], textAlign: TextAlign.justify),
             ],
           ),
         );
